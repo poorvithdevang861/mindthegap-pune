@@ -30,6 +30,7 @@ const state = {
     gaps: null,
     hubs: null,
     feeders: null,
+    activeFeederHighlight: null,
     customUploaded: null
   },
   feederSimulationSelection: 'F1',
@@ -100,21 +101,14 @@ function initNavigation() {
     });
   });
 
-  // Quick feeder button — jump to map and highlight the try-a-feeder panel
+  // Quick feeder button — jump to map and highlight the try-a-feeder route
   const quickFeederBtn = document.getElementById('btn-quick-feeder');
   if (quickFeederBtn) {
     quickFeederBtn.addEventListener('click', () => {
       document.getElementById('tab-gis').click();
-      const panel = document.getElementById('feeder-sim-panel');
       const simSelect = document.getElementById('sim-feeder-select');
-      if (simSelect) {
-        handleFeederSimulationChange(simSelect.value || 'F1', true);
-      }
-      if (panel) {
-        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        panel.classList.add('feeder-sim-pulse');
-        setTimeout(() => panel.classList.remove('feeder-sim-pulse'), 1600);
-      }
+      const feederId = (simSelect && simSelect.value) ? simSelect.value : 'F1';
+      handleFeederSimulationChange(feederId, true);
     });
   }
 }
@@ -158,6 +152,7 @@ function initGISMap() {
   state.layers.gaps = L.layerGroup().addTo(state.map);
   state.layers.hubs = L.layerGroup().addTo(state.map);
   state.layers.feeders = L.layerGroup().addTo(state.map);
+  state.layers.activeFeederHighlight = L.layerGroup().addTo(state.map);
   state.layers.customUploaded = L.layerGroup().addTo(state.map);
 
   // Render All Spatial Layers
@@ -461,6 +456,12 @@ function renderTransitGapPolygons() {
         metric3Val: `${gap.congestionIndex} / 10 (Severe)`,
         metric4Val: gap.recommendedFeeder
       });
+
+      // Auto-activate corresponding feeder route simulation if mapped
+      const matchingFeeder = PROPOSED_FEEDER_ROUTES.find(f => f.targetGapId === gap.id);
+      if (matchingFeeder) {
+        handleFeederSimulationChange(matchingFeeder.id, false);
+      }
     });
   });
 }
@@ -512,7 +513,7 @@ function renderProposedFeeders() {
     const poly = L.polyline(feeder.coords, {
       color: feeder.color,
       weight: 5,
-      opacity: 0.95,
+      opacity: 0.85,
       lineCap: 'round'
     }).addTo(state.layers.feeders);
 
@@ -527,7 +528,7 @@ function renderProposedFeeders() {
 
     poly.on('click', () => {
       document.getElementById('sim-feeder-select').value = feeder.id;
-      handleFeederSimulationChange(feeder.id);
+      handleFeederSimulationChange(feeder.id, true);
     });
   });
 }
@@ -539,7 +540,7 @@ function initInspectorAndSimulator() {
   const simSelect = document.getElementById('sim-feeder-select');
   if (simSelect) {
     simSelect.addEventListener('change', (e) => {
-      handleFeederSimulationChange(e.target.value);
+      handleFeederSimulationChange(e.target.value, true);
     });
   }
 
@@ -555,11 +556,35 @@ function handleFeederSimulationChange(feederId, zoomTo = false) {
 
   state.feederSimulationSelection = feederId;
 
+  // Make sure Feeders layer toggle is checked and layer is on the map
+  const feederToggle = document.getElementById('toggle-feeders');
+  if (feederToggle && !feederToggle.checked) {
+    feederToggle.checked = true;
+    if (state.map && !state.map.hasLayer(state.layers.feeders)) {
+      state.map.addLayer(state.layers.feeders);
+    }
+  }
+
+  // Update dropdown value if out of sync
+  const simSelect = document.getElementById('sim-feeder-select');
+  if (simSelect && simSelect.value !== feederId) {
+    simSelect.value = feederId;
+  }
+
   // Update simulator numbers
   const popGainEl = document.getElementById('sim-pop-gain');
   const timeGainEl = document.getElementById('sim-time-gain');
   if (popGainEl) popGainEl.innerText = `+${feeder.popCoverageGain.toLocaleString()}`;
   if (timeGainEl) timeGainEl.innerText = `-${feeder.avgWaitReductionMins} mins`;
+
+  // Pulse simulation panel to provide clear visual feedback
+  const panel = document.getElementById('feeder-sim-panel');
+  if (panel) {
+    panel.classList.remove('feeder-sim-pulse');
+    void panel.offsetWidth; // force CSS reflow
+    panel.classList.add('feeder-sim-pulse');
+    setTimeout(() => panel.classList.remove('feeder-sim-pulse'), 1600);
+  }
 
   // Update Inspector HUD
   updateInspector({
@@ -574,9 +599,132 @@ function handleFeederSimulationChange(feederId, zoomTo = false) {
     metric4Val: `${feeder.estDailyRiders.toLocaleString()} passengers/day`
   });
 
-  if (zoomTo && state.map) {
-    const polyline = L.polyline(feeder.coords);
-    state.map.fitBounds(polyline.getBounds().pad(0.3), { animate: true });
+  // Highlight route prominently on the interactive map
+  if (state.layers.activeFeederHighlight) {
+    state.layers.activeFeederHighlight.clearLayers();
+
+    // 1. Highlight connected Transit Desert Gap zone if associated
+    if (feeder.targetGapId) {
+      const targetGap = TRANSIT_DESERT_ZONES.find(g => g.id === feeder.targetGapId);
+      if (targetGap) {
+        L.polygon(targetGap.polygon, {
+          color: '#10b981',
+          fillColor: '#10b981',
+          fillOpacity: 0.22,
+          weight: 2.5,
+          dashArray: '5, 5',
+          className: 'feeder-gap-glow'
+        }).addTo(state.layers.activeFeederHighlight);
+      }
+    }
+
+    // 2. Outer Glowing Halo Polyline
+    L.polyline(feeder.coords, {
+      color: '#10b981',
+      weight: 16,
+      opacity: 0.65,
+      className: 'feeder-glow-line',
+      lineCap: 'round',
+      lineJoin: 'round'
+    }).addTo(state.layers.activeFeederHighlight);
+
+    // 3. High-Contrast Core Polyline
+    const activeCorePoly = L.polyline(feeder.coords, {
+      color: '#059669',
+      weight: 6,
+      opacity: 1,
+      lineCap: 'round',
+      lineJoin: 'round'
+    }).addTo(state.layers.activeFeederHighlight);
+
+    // 4. Directional Animated Dashed Flow
+    L.polyline(feeder.coords, {
+      color: '#ffffff',
+      weight: 2.5,
+      opacity: 0.95,
+      dashArray: '8, 12',
+      className: 'feeder-animated-flow',
+      lineCap: 'round',
+      lineJoin: 'round'
+    }).addTo(state.layers.activeFeederHighlight);
+
+    // 5. Origin Terminus Marker (Bus Icon)
+    const originCoords = feeder.coords[0];
+    const originPin = L.divIcon({
+      className: 'feeder-pin-wrapper',
+      html: `
+        <div class="feeder-pin feeder-pin-origin" title="Feeder Origin Node">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/>
+          </svg>
+        </div>
+      `,
+      iconSize: [28, 28],
+      iconAnchor: [14, 14]
+    });
+    L.marker(originCoords, { icon: originPin }).addTo(state.layers.activeFeederHighlight);
+
+    // 6. Metro Connection Marker (Metro Hub Icon)
+    const destCoords = feeder.coords[feeder.coords.length - 1];
+    const metroPin = L.divIcon({
+      className: 'feeder-pin-wrapper',
+      html: `
+        <div class="feeder-pin feeder-pin-metro" title="Connecting Metro: ${feeder.connectsToMetro}">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="3" width="16" height="16" rx="2"/><line x1="4" y1="11" x2="20" y2="11"/><line x1="9" y1="15" x2="10" y2="15"/><line x1="14" y1="15" x2="15" y2="15"/>
+          </svg>
+        </div>
+      `,
+      iconSize: [28, 28],
+      iconAnchor: [14, 14]
+    });
+    L.marker(destCoords, { icon: metroPin }).addTo(state.layers.activeFeederHighlight);
+
+    // 7. Interactive Rich Popup
+    const popupHtml = `
+      <div class="feeder-highlight-popup-content">
+        <div class="feeder-popup-header">
+          <span class="feeder-popup-pill">⚡ SIMULATED FEEDER</span>
+          <span class="feeder-popup-mode">${feeder.busType}</span>
+        </div>
+        <h4 class="feeder-popup-title">${feeder.name}</h4>
+        <div class="feeder-popup-route-nodes">
+          <div class="node-item"><span class="node-dot origin"></span> <span><b>Neighborhood Origin:</b> Starting Zone</span></div>
+          <div class="node-item"><span class="node-dot metro"></span> <span><b>Metro Station:</b> ${feeder.connectsToMetro}</span></div>
+        </div>
+        <div class="feeder-popup-stats-grid">
+          <div class="stat-box">
+            <div class="stat-label">Pop Reach</div>
+            <div class="stat-value gain">+${feeder.popCoverageGain.toLocaleString()}</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Wait Saved</div>
+            <div class="stat-value time">-${feeder.avgWaitReductionMins}m</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Fleet</div>
+            <div class="stat-value fleet">${feeder.fleetAllocated} e-buses</div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    activeCorePoly.bindPopup(popupHtml, {
+      className: 'feeder-active-popup',
+      maxWidth: 320,
+      autoPan: false
+    });
+
+    if (zoomTo && state.map) {
+      const bounds = activeCorePoly.getBounds().pad(0.35);
+      state.map.flyToBounds(bounds, {
+        duration: 1.1,
+        easeLinearity: 0.25
+      });
+      setTimeout(() => {
+        activeCorePoly.openPopup();
+      }, 700);
+    }
   }
 }
 

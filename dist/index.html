@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mind the Gap: Spatial Analysis of Metro-Bus Integration in Pune | Group 38</title>
+  <title>Mind the Gap — Pune Metro & Bus Integration</title>
   <meta name="description" content="Spatial analysis and optimization dashboard for Pune Metro and PMPML bus integration, feeder networks, transfer delay mitigation, and commuter accessibility.">
   
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
   <!-- Stylesheet -->
-  <script type="module" crossorigin src="/assets/index-BFTJ6K0V.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-DxUuvuNV.css">
+  <script type="module" crossorigin src="/assets/index-DqJMzInj.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-7hL9ZgWE.css">
 </head>
 <body>
 
@@ -25,11 +25,8 @@
         </svg>
       </div>
       <div class="brand-text-block">
-        <h1 class="brand-title">
-          MIND THE GAP
-          <span class="brand-pill">PUNE 2026</span>
-        </h1>
-        <p class="brand-subtitle">Spatial Analysis of Metro-Bus Integration & Multimodal Connectivity • Group 38</p>
+        <h1 class="brand-title">Mind the Gap</h1>
+        <p class="brand-subtitle">Pune metro &amp; bus integration · first-mile connectivity</p>
       </div>
     </div>
 
@@ -45,7 +42,7 @@
       </button>
       <button class="nav-tab-btn" data-view="survey-analytics" id="tab-survey">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-        Survey Insights (A-E)
+        Survey insights
       </button>
       <button class="nav-tab-btn" data-view="policy-economics" id="tab-policy">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
@@ -61,11 +58,11 @@
     <div class="nav-actions">
       <div class="badge-live">
         <span class="live-dot"></span>
-        GIS Pipeline Ready
+        Live map
       </div>
       <button class="btn-primary" id="btn-quick-feeder">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        Simulate Feeder
+        Try a feeder
       </button>
     </div>
   </header>
@@ -106,7 +103,7 @@
 
     <div class="kpi-item">
       <div class="kpi-icon amber">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C2.1 11 2 11.5 2 12v4c0 .6.4 1 1 1h2"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/></svg>
       </div>
       <div class="kpi-content">
         <span class="kpi-value" id="kpi-redundant-buses">74 Buses</span>
@@ -120,7 +117,7 @@
       </div>
       <div class="kpi-content">
         <span class="kpi-value" id="kpi-sim-gain">+393,000</span>
-        <span class="kpi-label">Simulated Feeder Coverage</span>
+        <span class="kpi-label">People reached by feeders</span>
       </div>
     </div>
   </section>
@@ -140,8 +137,8 @@
         <aside class="glass-panel">
           <div class="panel-header">
             <h2 class="panel-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-              Spatial Layers
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-teal)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
+              Map layers
             </h2>
             <button class="btn-secondary" id="btn-reset-map" style="padding:0.25rem 0.55rem; font-size:0.72rem;">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
@@ -159,7 +156,7 @@
               
               <label class="layer-toggle-card">
                 <div class="layer-info">
-                  <div class="layer-icon-badge" style="background:rgba(139,92,246,0.2); color:#a78bfa; border:1px solid rgba(139,92,246,0.4);">
+                  <div class="layer-icon-badge" style="background:rgba(139,92,246,0.2); color:var(--accent-purple); border:1px solid rgba(139,92,246,0.4);">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
                   </div>
                   <div>
@@ -175,7 +172,7 @@
 
               <label class="layer-toggle-card">
                 <div class="layer-info">
-                  <div class="layer-icon-badge" style="background:rgba(6,182,212,0.2); color:#22d3ee; border:1px solid rgba(6,182,212,0.4);">
+                  <div class="layer-icon-badge" style="background:rgba(6,182,212,0.2); color:#0e7490; border:1px solid rgba(6,182,212,0.4);">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
                   </div>
                   <div>
@@ -191,7 +188,7 @@
 
               <label class="layer-toggle-card">
                 <div class="layer-info">
-                  <div class="layer-icon-badge" style="background:rgba(245,158,11,0.2); color:#fbbf24; border:1px solid rgba(245,158,11,0.4);">
+                  <div class="layer-icon-badge" style="background:rgba(245,158,11,0.2); color:#b45309; border:1px solid rgba(245,158,11,0.4);">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
                   </div>
                   <div>
@@ -209,14 +206,14 @@
             <!-- PMPML & Catchments -->
             <div class="layer-group">
               <span class="layer-group-title">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.5 2.8C2.1 11 2 11.5 2 12v4c0 .6.4 1 1 1h2"/></svg>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/></svg>
                 Bus Network & Walking Catchments
               </span>
               
               <label class="layer-toggle-card">
                 <div class="layer-info">
-                  <div class="layer-icon-badge" style="background:rgba(244,63,94,0.2); color:#fb7185; border:1px solid rgba(244,63,94,0.4);">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="12" x2="20" y2="12"/></svg>
+                  <div class="layer-icon-badge" style="background:rgba(244,63,94,0.2); color:var(--accent-red); border:1px solid rgba(244,63,94,0.4);">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/></svg>
                   </div>
                   <div>
                     <div class="layer-name">PMPML Bus Corridors</div>
@@ -231,7 +228,7 @@
 
               <label class="layer-toggle-card">
                 <div class="layer-info">
-                  <div class="layer-icon-badge" style="background:rgba(139,92,246,0.15); color:#a78bfa; border:1px solid rgba(139,92,246,0.3);">
+                  <div class="layer-icon-badge" style="background:rgba(139,92,246,0.15); color:var(--accent-purple); border:1px solid rgba(139,92,246,0.3);">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>
                   </div>
                   <div>
@@ -255,7 +252,7 @@
               
               <label class="layer-toggle-card">
                 <div class="layer-info">
-                  <div class="layer-icon-badge" style="background:rgba(244,63,94,0.2); color:#fb7185; border:1px solid rgba(244,63,94,0.4);">
+                  <div class="layer-icon-badge" style="background:rgba(244,63,94,0.2); color:var(--accent-red); border:1px solid rgba(244,63,94,0.4);">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"/></svg>
                   </div>
                   <div>
@@ -271,7 +268,7 @@
 
               <label class="layer-toggle-card">
                 <div class="layer-info">
-                  <div class="layer-icon-badge" style="background:rgba(245,158,11,0.2); color:#fbbf24; border:1px solid rgba(245,158,11,0.4);">
+                  <div class="layer-icon-badge" style="background:rgba(245,158,11,0.2); color:#b45309; border:1px solid rgba(245,158,11,0.4);">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/></svg>
                   </div>
                   <div>
@@ -287,7 +284,7 @@
 
               <label class="layer-toggle-card">
                 <div class="layer-info">
-                  <div class="layer-icon-badge" style="background:rgba(16,185,129,0.2); color:#34d399; border:1px solid rgba(16,185,129,0.4);">
+                  <div class="layer-icon-badge" style="background:rgba(16,185,129,0.2); color:var(--accent-emerald); border:1px solid rgba(16,185,129,0.4);">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
                   </div>
                   <div>
@@ -316,13 +313,13 @@
             </button>
             <button class="map-hud-btn" id="btn-toggle-tiles">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
-              Dark/OSM Basemap
+              Switch basemap
             </button>
           </div>
 
           <!-- Interactive Map Legend -->
           <div class="map-legend-hud">
-            <span style="font-size:0.72rem; font-weight:700; text-transform:uppercase; color:#fff; letter-spacing:0.04em;">Network Legend</span>
+            <span style="font-size:0.72rem; font-weight:700; text-transform:uppercase; color:var(--text-primary); letter-spacing:0.04em;">Legend</span>
             <div class="legend-item"><span class="legend-line" style="background:#8b5cf6;"></span> Line 1: Purple (PCMC-Swargate)</div>
             <div class="legend-item"><span class="legend-line" style="background:#06b6d4;"></span> Line 2: Aqua (Vanaz-Ramwadi)</div>
             <div class="legend-item"><span class="legend-line" style="background:#f59e0b; border-style:dashed;"></span> Line 3: Hinjawadi Metro</div>
@@ -336,12 +333,11 @@
         <aside class="glass-panel gis-inspector-pane">
           <div class="panel-header">
             <h2 class="panel-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan-light)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              Spatial Inspector
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+              Selection details
             </h2>
-            <span class="inspector-tag tag-purple" id="inspector-status">
-              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/></svg>
-              Live HUD
+            <span class="inspector-tag tag-cyan" id="inspector-status">
+              Click map
             </span>
           </div>
 
@@ -350,40 +346,40 @@
             <!-- Dynamic Inspector Card -->
             <div class="inspector-card" id="inspector-card">
               <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="inspector-tag tag-purple" id="insp-type">METRO INTERCHANGE</span>
+                <span class="inspector-tag tag-purple" id="insp-type">Metro interchange</span>
                 <span style="font-size:0.72rem; color:var(--text-muted); font-family:var(--font-mono);" id="insp-coords">18.5268, 73.8584</span>
               </div>
-              <h3 style="font-size:1.05rem; font-weight:700; color:#fff;" id="insp-name">Civil Court Interchange</h3>
+              <h3 class="insp-heading" id="insp-name">Civil Court Interchange</h3>
               <p style="font-size:0.77rem; color:var(--text-body); line-height:1.45;" id="insp-desc">
-                Central multi-line transit nexus connecting Purple Line, Aqua Line, and upcoming Line 3.
+                Central multi-line hub connecting Purple Line, Aqua Line, and upcoming Line 3.
               </p>
 
               <div style="border-top:1px solid var(--border-subtle); padding-top:0.75rem; display:flex; flex-direction:column; gap:0.5rem;">
                 <div class="detail-row">
                   <span class="detail-label">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-                    Daily Transfers
+                    Daily transfers
                   </span>
                   <span class="detail-value" id="insp-metric-1">54,000 riders</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    Transfer Friction
+                    Transfer friction
                   </span>
-                  <span class="detail-value" style="color:#34d399;" id="insp-metric-2">28 / 100 (Low)</span>
+                  <span class="detail-value" style="color:var(--accent-emerald);" id="insp-metric-2">28 / 100 (Low)</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                    Walk to Bus Feeder
+                    Walk to bus
                   </span>
                   <span class="detail-value" id="insp-metric-3">140 meters</span>
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="16" rx="2"/></svg>
-                    Integrated Modes
+                    Modes available
                   </span>
                   <span class="detail-value" id="insp-metric-4">Metro L1, L2, L3, Bus</span>
                 </div>
@@ -391,38 +387,49 @@
             </div>
 
             <!-- Feeder Network Simulation Controls -->
-            <div class="feeder-sim-box">
-              <div style="display:flex; align-items:center; gap:0.5rem;">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent-emerald-light)" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                <h4 style="font-size:0.88rem; font-weight:700; color:white;">Feeder Route Simulator</h4>
-              </div>
-              <p style="font-size:0.74rem; color:var(--text-body); line-height:1.4;">
-                Simulate connecting high-density transit gap zones to metro stations using PMPML electric feeders:
-              </p>
-
-              <select class="sim-select" id="sim-feeder-select">
-                <option value="F1">Feeder F1: Dhanori ⇄ Yerawada Metro</option>
-                <option value="F2">Feeder F2: Ambegaon ⇄ Swargate Hub</option>
-                <option value="F3">Feeder F3: Bavdhan ⇄ Vanaz Metro</option>
-                <option value="F4">Feeder F4: Wagholi ⇄ Ramwadi Metro</option>
-                <option value="F5">Feeder F5: Katraj ⇄ Swargate Express</option>
-              </select>
-
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.6rem; background:rgba(0,0,0,0.3); padding:0.75rem; border-radius:var(--radius-sm); border:1px solid rgba(255,255,255,0.06);">
-                <div>
-                  <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Pop. Covered</div>
-                  <div style="font-size:1rem; font-weight:700; color:#34d399; font-family:var(--font-mono);" id="sim-pop-gain">+68,000</div>
-                </div>
-                <div>
-                  <div style="font-size:0.7rem; color:var(--text-muted); text-transform:uppercase;">Wait Reduction</div>
-                  <div style="font-size:1rem; font-weight:700; color:#38bdf8; font-family:var(--font-mono);" id="sim-time-gain">-18 mins</div>
-                </div>
+            <div class="feeder-sim-box" id="feeder-sim-panel">
+              <div class="feeder-sim-header">
+                <h4 class="feeder-sim-title">
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent-teal)" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                  Try a feeder route
+                </h4>
+                <p class="feeder-sim-desc">
+                  A feeder is a short electric bus loop that links a crowded neighbourhood to the nearest metro — so people don’t need long auto rides for the last mile.
+                </p>
               </div>
 
-              <button class="btn-primary" id="btn-apply-sim" style="justify-content:center; padding:0.5rem;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
-                Highlight on GIS Map
-              </button>
+              <div class="feeder-step">
+                <span class="feeder-step-label">1 · Pick a neighbourhood link</span>
+                <select class="sim-select" id="sim-feeder-select">
+                  <option value="F1">Dhanori → Yerawada Metro</option>
+                  <option value="F2">Ambegaon → Swargate Hub</option>
+                  <option value="F3">Bavdhan → Vanaz Metro</option>
+                  <option value="F4">Wagholi → Ramwadi Metro</option>
+                  <option value="F5">Katraj → Swargate</option>
+                </select>
+              </div>
+
+              <div class="feeder-step">
+                <span class="feeder-step-label">2 · Estimated impact</span>
+                <div class="sim-impact-grid">
+                  <div class="sim-impact-card">
+                    <div class="sim-impact-label">People newly within reach</div>
+                    <div class="sim-impact-value gain" id="sim-pop-gain">+68,000</div>
+                  </div>
+                  <div class="sim-impact-card">
+                    <div class="sim-impact-label">Waiting time saved</div>
+                    <div class="sim-impact-value time" id="sim-time-gain">−18 mins</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="feeder-step">
+                <span class="feeder-step-label">3 · See it on the map</span>
+                <button class="btn-primary" id="btn-apply-sim" style="justify-content:center; width:100%; padding:0.55rem;">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+                  Show this route
+                </button>
+              </div>
             </div>
 
           </div>
@@ -442,7 +449,7 @@
           <div class="chart-header">
             <div>
               <h3 class="chart-title">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-red-light)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-red)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                 Transfer Wait Time vs Walking Impedance
               </h3>
               <p class="chart-desc">Multi-modal interchange delay metrics across major Pune transit hubs</p>
@@ -458,7 +465,7 @@
           <div class="chart-header">
             <div>
               <h3 class="chart-title">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-amber-light)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-amber)" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
                 Peak Hour Transfer Delay Distribution (7 AM - 10 PM)
               </h3>
               <p class="chart-desc">Swargate vs Pune Railway Station vs Civil Court</p>
@@ -475,8 +482,8 @@
       <div class="mca-table-card">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.1rem;">
           <div>
-            <h3 style="font-size:1.1rem; font-weight:700; color:#fff; display:flex; align-items:center; gap:0.5rem;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple-light)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/></svg>
+            <h3 style="font-size:1.1rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:0.5rem;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple)" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/></svg>
               Multi-Criteria Transit Hub Friction Assessment
             </h3>
             <p style="font-size:0.77rem; color:var(--text-body); margin-top:0.2rem;">Evaluating multimodal physical integration, pedestrian detours, and bottleneck friction</p>
@@ -514,7 +521,7 @@
           <div class="chart-header">
             <div>
               <h3 class="chart-title">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple-light)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/></svg>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/></svg>
                 Section A & B: Commuter Modal Split in Pune
               </h3>
               <p class="chart-desc">High private vehicle reliance vs current public transport share (412 respondents)</p>
@@ -530,8 +537,8 @@
           <div class="chart-header">
             <div>
               <h3 class="chart-title">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan-light)" stroke-width="2"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
-                Section D: Key Barriers to Metro-Bus Combined Commute
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+                Why people skip metro + bus
               </h3>
               <p class="chart-desc">% Commuters reporting specific last-mile & transfer issues</p>
             </div>
@@ -548,11 +555,11 @@
         <div class="glass-panel" style="padding:1.35rem;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.1rem; border-bottom:1px solid var(--border-subtle); padding-bottom:0.75rem;">
             <div>
-              <h3 style="font-size:1.05rem; font-weight:700; color:#fff; display:flex; align-items:center; gap:0.5rem;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-emerald-light)" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                Interactive Commuter Survey Intake (Sections A–E)
+              <h3 style="font-size:1.05rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:0.5rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-emerald)" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Share your commute
               </h3>
-              <p style="font-size:0.76rem; color:var(--text-body); margin-top:0.2rem;">Contribute field commute data to dynamically update Group 38's model</p>
+              <p style="font-size:0.76rem; color:var(--text-body); margin-top:0.2rem;">Your answers help refine first-mile and transfer insights for Pune.</p>
             </div>
             <span class="inspector-tag tag-green">Live Form</span>
           </div>
@@ -635,7 +642,7 @@
             <div class="form-group">
               <label class="form-label" for="surv-barrier">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                Biggest Challenge Switching between Bus & Metro (Section D & E)
+                Biggest challenge switching between bus & metro
               </label>
               <textarea class="form-textarea" id="surv-barrier" rows="2" placeholder="e.g. Bus stop is too far from metro exit, need single integrated pass, long wait times..." required></textarea>
             </div>
@@ -651,8 +658,8 @@
         <div class="glass-panel" style="padding:1.35rem;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.1rem; border-bottom:1px solid var(--border-subtle); padding-bottom:0.75rem;">
             <div>
-              <h3 style="font-size:1.05rem; font-weight:700; color:#fff; display:flex; align-items:center; gap:0.5rem;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple-light)" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              <h3 style="font-size:1.05rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:0.5rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple)" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                 Commuter Voice & Field Feedback
               </h3>
               <p style="font-size:0.76rem; color:var(--text-body); margin-top:0.2rem;">Direct statements from Pune daily commuters</p>
@@ -676,8 +683,8 @@
         <!-- Calculator Controls -->
         <div class="glass-panel" style="padding:1.35rem;">
           <div style="margin-bottom:1.25rem; border-bottom:1px solid var(--border-subtle); padding-bottom:0.75rem;">
-            <h3 style="font-size:1.08rem; font-weight:700; color:#fff; display:flex; align-items:center; gap:0.5rem;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple-light)" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            <h3 style="font-size:1.08rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:0.5rem;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple)" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
               Feeder Bus Fleet Sizing & Economics Modeler
             </h3>
             <p style="font-size:0.77rem; color:var(--text-body); margin-top:0.2rem;">Simulate PMPML electric feeder deployment & financial viability</p>
@@ -686,7 +693,7 @@
           <div class="slider-container">
             <div class="slider-header">
               <span>Proposed E-Bus Feeder Fleet</span>
-              <span style="font-weight:700; color:#a78bfa; font-family:var(--font-mono);" id="val-fleet-size">60 Buses</span>
+              <span style="font-weight:700; color:var(--accent-purple); font-family:var(--font-mono);" id="val-fleet-size">60 Buses</span>
             </div>
             <input type="range" class="range-slider" id="slider-fleet-size" min="10" max="200" step="5" value="60">
           </div>
@@ -694,7 +701,7 @@
           <div class="slider-container">
             <div class="slider-header">
               <span>Daily Kilometers per Bus</span>
-              <span style="font-weight:700; color:#38bdf8; font-family:var(--font-mono);" id="val-daily-km">160 km/day</span>
+              <span style="font-weight:700; color:var(--accent-cyan); font-family:var(--font-mono);" id="val-daily-km">160 km/day</span>
             </div>
             <input type="range" class="range-slider" id="slider-daily-km" min="80" max="250" step="10" value="160">
           </div>
@@ -702,7 +709,7 @@
           <div class="slider-container">
             <div class="slider-header">
               <span>Redundant Parallel Buses Rationalized</span>
-              <span style="font-weight:700; color:#fb7185; font-family:var(--font-mono);" id="val-buses-saved">48 Buses</span>
+              <span style="font-weight:700; color:var(--accent-red); font-family:var(--font-mono);" id="val-buses-saved">48 Buses</span>
             </div>
             <input type="range" class="range-slider" id="slider-buses-saved" min="0" max="100" step="2" value="48">
           </div>
@@ -710,7 +717,7 @@
           <div class="slider-container">
             <div class="slider-header">
               <span>Integrated Modal Fare Discount</span>
-              <span style="font-weight:700; color:#34d399; font-family:var(--font-mono);" id="val-fare-discount">20% Off Combined</span>
+              <span style="font-weight:700; color:var(--accent-emerald); font-family:var(--font-mono);" id="val-fare-discount">20% Off Combined</span>
             </div>
             <input type="range" class="range-slider" id="slider-fare-discount" min="0" max="40" step="5" value="20">
           </div>
@@ -719,8 +726,8 @@
         <!-- Calculated Impacts -->
         <div class="glass-panel" style="padding:1.35rem; display:flex; flex-direction:column; justify-content:space-between;">
           <div style="margin-bottom:0.85rem; border-bottom:1px solid var(--border-subtle); padding-bottom:0.6rem;">
-            <h3 style="font-size:1.08rem; font-weight:700; color:#fff; display:flex; align-items:center; gap:0.5rem;">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-emerald-light)" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <h3 style="font-size:1.08rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:0.5rem;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-emerald)" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
               Estimated Economic & Environmental Output
             </h3>
             <p style="font-size:0.77rem; color:var(--text-body); margin-top:0.2rem;">Derived from PMPML per-km operating tariffs & SDG metrics</p>
@@ -729,25 +736,25 @@
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.85rem; margin-bottom:0.75rem;">
             <div class="calc-result-badge">
               <span style="font-size:0.72rem; color:var(--text-body); text-transform:uppercase; font-weight:600;">Annual Fuel Cost Savings</span>
-              <span class="calc-big-num" style="color:#34d399;" id="calc-fuel-savings">₹ 16.8 Cr</span>
+              <span class="calc-big-num" style="color:var(--accent-emerald);" id="calc-fuel-savings">₹ 16.8 Cr</span>
               <span style="font-size:0.7rem; color:var(--text-muted);">From rationalizing parallel diesel runs</span>
             </div>
 
             <div class="calc-result-badge">
               <span style="font-size:0.72rem; color:var(--text-body); text-transform:uppercase; font-weight:600;">Daily Feeder Commuters</span>
-              <span class="calc-big-num" style="color:#38bdf8;" id="calc-feeder-riders">114,000</span>
+              <span class="calc-big-num" style="color:var(--accent-cyan);" id="calc-feeder-riders">114,000</span>
               <span style="font-size:0.7rem; color:var(--text-muted);">Feeding into Metro L1/L2</span>
             </div>
 
             <div class="calc-result-badge">
               <span style="font-size:0.72rem; color:var(--text-body); text-transform:uppercase; font-weight:600;">CO2 Emissions Prevented</span>
-              <span class="calc-big-num" style="color:#a78bfa;" id="calc-co2-saved">16.2 Tons/day</span>
+              <span class="calc-big-num" style="color:var(--accent-purple);" id="calc-co2-saved">16.2 Tons/day</span>
               <span style="font-size:0.7rem; color:var(--text-muted);">SDG 11 & SDG 13 Climate Impact</span>
             </div>
 
             <div class="calc-result-badge">
               <span style="font-size:0.72rem; color:var(--text-body); text-transform:uppercase; font-weight:600;">Tree Offset Equivalent</span>
-              <span class="calc-big-num" style="color:#fde047;" id="calc-tree-offset">728 Trees/yr</span>
+              <span class="calc-big-num" style="color:var(--accent-amber);" id="calc-tree-offset">728 Trees/yr</span>
               <span style="font-size:0.7rem; color:var(--text-muted);">Urban ecological recovery</span>
             </div>
           </div>
@@ -757,9 +764,9 @@
 
       <!-- Governance Coordination Matrix -->
       <div style="margin-top:1.25rem;">
-        <h3 style="font-size:1.1rem; font-weight:700; color:#fff; margin-bottom:0.85rem; display:flex; align-items:center; gap:0.5rem;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-amber-light)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          Interdisciplinary Multi-Agency Policy Roadmap (PMC • PMPML • Maha Metro • PMRDA)
+        <h3 style="font-size:1.1rem; font-weight:700; color:var(--text-primary); margin-bottom:0.85rem; display:flex; align-items:center; gap:0.5rem;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-amber)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Who needs to coordinate (PMC · PMPML · Maha Metro · PMRDA)
         </h3>
         <div class="gov-grid" id="gov-matrix-container">
           <!-- Dynamically populated cards -->
@@ -776,8 +783,8 @@
         <!-- Drag & Drop GeoJSON Uploader -->
         <div class="glass-panel" style="padding:1.5rem;">
           <div style="margin-bottom:1.1rem;">
-            <h3 style="font-size:1.1rem; font-weight:700; color:#fff; display:flex; align-items:center; gap:0.5rem;">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple-light)" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <h3 style="font-size:1.1rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:0.5rem;">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple)" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
               GIS Data Layer Sync & Uploader
             </h3>
             <p style="font-size:0.8rem; color:var(--text-body); margin-top:0.25rem;">
@@ -786,8 +793,8 @@
           </div>
 
           <div class="dropzone" id="gis-dropzone">
-            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple-light)" stroke-width="1.6"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            <div style="font-weight:700; font-size:0.95rem; color:#fff;">Drag & Drop your QGIS GeoJSON layer here</div>
+            <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="var(--accent-purple)" stroke-width="1.6"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <div style="font-weight:700; font-size:0.95rem; color:var(--text-primary);">Drag & Drop your QGIS GeoJSON layer here</div>
             <div style="font-size:0.76rem; color:var(--text-body);">Supports standard .geojson and .json GIS feature collections</div>
             <input type="file" id="gis-file-input" accept=".geojson,.json" style="display:none;">
             <button class="btn-secondary" id="btn-browse-file" style="margin-top:0.6rem;">
@@ -819,8 +826,8 @@
         <div class="glass-panel" style="padding:1.5rem;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.85rem;">
             <div>
-              <h3 style="font-size:1.1rem; font-weight:700; color:#fff; display:flex; align-items:center; gap:0.5rem;">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan-light)" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+              <h3 style="font-size:1.1rem; font-weight:700; color:var(--text-primary); display:flex; align-items:center; gap:0.5rem;">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
                 Active GeoJSON Layer Structure
               </h3>
               <p style="font-size:0.78rem; color:var(--text-body); margin-top:0.2rem;">Live spatial feature inspection for GIS pipeline integration</p>

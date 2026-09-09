@@ -1178,3 +1178,220 @@ input:checked + .slider:before {
   color: var(--text-primary);
   margin: 10px 12px !important;
 }
+
+/* ===================================================
+   INTERACTIVE FEEDER SIMULATION HIGHLIGHT ON MAP
+   =================================================== */
+
+/* Glowing halo polyline */
+.feeder-glow-line {
+  stroke: #10b981 !important;
+  filter: drop-shadow(0 0 8px rgba(16, 185, 129, 0.95)) drop-shadow(0 0 16px rgba(16, 185, 129, 0.6));
+  animation: feederGlowPulse 2.2s infinite alternate ease-in-out;
+}
+
+@keyframes feederGlowPulse {
+  0% {
+    stroke-opacity: 0.45;
+  }
+  100% {
+    stroke-opacity: 0.85;
+  }
+}
+
+/* Moving dashed flow line indicating active EV bus loop */
+.feeder-animated-flow {
+  stroke: #ffffff !important;
+  stroke-dasharray: 8, 12;
+  animation: feederFlowDash 1.2s linear infinite;
+  pointer-events: none;
+}
+
+@keyframes feederFlowDash {
+  to {
+    stroke-dashoffset: -40;
+  }
+}
+
+/* Target Transit Gap Area Active Highlight */
+.feeder-gap-glow {
+  stroke: #10b981 !important;
+  animation: gapGlowPulse 2.5s infinite alternate ease-in-out;
+}
+
+@keyframes gapGlowPulse {
+  0% {
+    fill-opacity: 0.12;
+    stroke-opacity: 0.6;
+  }
+  100% {
+    fill-opacity: 0.28;
+    stroke-opacity: 1;
+  }
+}
+
+/* Custom Marker Pins for Feeder Origin & Metro Connection */
+.feeder-pin-wrapper {
+  background: transparent !important;
+  border: none !important;
+}
+
+.feeder-pin {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  color: #ffffff;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+.feeder-pin:hover {
+  transform: scale(1.18);
+}
+
+.feeder-pin-origin {
+  background: linear-gradient(135deg, #10b981 0%, #047857 100%);
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 16px rgba(16, 185, 129, 0.9), 0 0 0 4px rgba(16, 185, 129, 0.35);
+  animation: pinPulseGreen 1.8s infinite ease-in-out;
+}
+
+.feeder-pin-metro {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 16px rgba(139, 92, 246, 0.9), 0 0 0 4px rgba(139, 92, 246, 0.35);
+  animation: pinPulsePurple 1.8s infinite ease-in-out;
+}
+
+@keyframes pinPulseGreen {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 14px rgba(16, 185, 129, 0.85), 0 0 0 3px rgba(16, 185, 129, 0.35); }
+  50% { transform: scale(1.12); box-shadow: 0 0 22px rgba(16, 185, 129, 1), 0 0 0 7px rgba(16, 185, 129, 0.2); }
+}
+
+@keyframes pinPulsePurple {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 14px rgba(139, 92, 246, 0.85), 0 0 0 3px rgba(139, 92, 246, 0.35); }
+  50% { transform: scale(1.12); box-shadow: 0 0 22px rgba(139, 92, 246, 1), 0 0 0 7px rgba(139, 92, 246, 0.2); }
+}
+
+/* Rich Feeder Popup Styling */
+.feeder-active-popup .leaflet-popup-content-wrapper {
+  background: #0f172a !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(16, 185, 129, 0.45) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55), 0 0 24px rgba(16, 185, 129, 0.25) !important;
+  padding: 0 !important;
+}
+
+.feeder-active-popup .leaflet-popup-tip {
+  background: #0f172a !important;
+}
+
+.feeder-active-popup .leaflet-popup-content {
+  margin: 12px 14px !important;
+  color: #f8fafc;
+}
+
+.feeder-highlight-popup-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-width: 240px;
+}
+
+.feeder-popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.feeder-popup-pill {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.16);
+  border: 1px solid rgba(16, 185, 129, 0.35);
+  padding: 0.2rem 0.5rem;
+  border-radius: 100px;
+}
+
+.feeder-popup-mode {
+  font-size: 0.68rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.feeder-popup-title {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1.35;
+}
+
+.feeder-popup-route-nodes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 6px;
+  padding: 0.5rem 0.65rem;
+  font-size: 0.74rem;
+  color: #cbd5e1;
+}
+
+.node-item {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.node-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.node-dot.origin { background: #10b981; box-shadow: 0 0 6px #10b981; }
+.node-dot.metro { background: #8b5cf6; box-shadow: 0 0 6px #8b5cf6; }
+
+.feeder-popup-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0.45rem;
+}
+
+.feeder-popup-stats-grid .stat-box {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 6px;
+  padding: 0.45rem 0.4rem;
+  text-align: center;
+}
+
+.feeder-popup-stats-grid .stat-label {
+  font-size: 0.62rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  margin-bottom: 0.2rem;
+  line-height: 1.1;
+}
+
+.feeder-popup-stats-grid .stat-value {
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.feeder-popup-stats-grid .stat-value.gain { color: #10b981; }
+.feeder-popup-stats-grid .stat-value.time { color: #06b6d4; }
+.feeder-popup-stats-grid .stat-value.fleet { color: #a78bfa; }
+
