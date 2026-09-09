@@ -1,7 +1,5 @@
 /**
- * MIND THE GAP: Spatial Analysis of Metro-Bus Integration in Pune
- * Geospatial Dataset & Transit Network Models
- * Group 38 - Interdisciplinary Major Project 2026
+ * Mind the Gap — Pune geospatial datasets & transit network models
  */
 
 export const PUNE_CENTER = [18.5204, 73.8567];
@@ -491,7 +489,7 @@ export const PROPOSED_FEEDER_ROUTES = [
   }
 ];
 
-// 7. COMMUTER SURVEY DATASET (Group 38 - Sections A to E)
+// 7. COMMUTER SURVEY DATASET
 export const INITIAL_SURVEY_ANALYTICS = {
   totalResponses: 412,
   modalSplit: {
