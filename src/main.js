@@ -88,7 +88,7 @@ function initNavigation() {
         if (state.activeView === 'gis-explorer' && state.map) {
           setTimeout(() => {
             state.map.invalidateSize();
-          }, 100);
+          }, 120);
         }
 
         // Render charts when their tabs open
@@ -109,7 +109,7 @@ function initNavigation() {
       const simSelect = document.getElementById('sim-feeder-select');
       if (simSelect) {
         simSelect.value = 'F1';
-        handleFeederSimulationChange('F1');
+        handleFeederSimulationChange('F1', true);
       }
     });
   }
@@ -224,8 +224,8 @@ function renderMetroLines() {
   const purpleCoords = purple.stations.map(s => s.coords);
   L.polyline(purpleCoords, {
     color: '#8b5cf6',
-    weight: 6,
-    opacity: 0.9,
+    weight: 5,
+    opacity: 0.95,
     lineCap: 'round',
     lineJoin: 'round'
   }).addTo(state.layers.purple);
@@ -233,12 +233,12 @@ function renderMetroLines() {
   // Purple Glow layer
   L.polyline(purpleCoords, {
     color: '#a78bfa',
-    weight: 12,
+    weight: 11,
     opacity: 0.25,
     lineCap: 'round'
   }).addTo(state.layers.purple);
 
-  purple.stations.forEach((stn, index) => {
+  purple.stations.forEach(stn => {
     const isInterchange = stn.type === 'interchange' || stn.type === 'major_hub';
     const marker = L.circleMarker(stn.coords, {
       radius: isInterchange ? 8 : 5,
@@ -251,9 +251,9 @@ function renderMetroLines() {
 
     marker.bindPopup(`
       <div style="font-family:sans-serif; padding:4px;">
-        <span style="font-size:10px; font-weight:700; color:#c4b5fd; text-transform:uppercase;">Line 1 • Purple Line</span>
-        <h4 style="margin:2px 0 6px; font-size:14px; color:#fff;">${stn.name}</h4>
-        <div style="font-size:11px; color:#cbd5e1;">Interchange: ${stn.interchange.join(', ') || 'Local Access'}</div>
+        <span style="font-size:10px; font-weight:700; color:#c4b5fd; text-transform:uppercase; letter-spacing:0.04em;">Line 1 • Purple Line</span>
+        <h4 style="margin:2px 0 6px; font-size:14px; color:#fff; font-weight:700;">${stn.name}</h4>
+        <div style="font-size:11px; color:#cbd5e1;"><b>Interchange:</b> ${stn.interchange.join(', ') || 'Local Access'}</div>
       </div>
     `);
 
@@ -264,13 +264,9 @@ function renderMetroLines() {
         name: `${stn.name} (Line 1)`,
         coords: `${stn.coords[0].toFixed(4)}, ${stn.coords[1].toFixed(4)}`,
         desc: `Operational station on Pune Metro Purple Line (PCMC - Swargate corridor).`,
-        metric1Label: 'Daily Boardings',
         metric1Val: isInterchange ? '18,500 riders' : '6,200 riders',
-        metric2Label: 'Station Catchment',
         metric2Val: '500m Walk Buffer Active',
-        metric3Label: 'Connecting Bus Stops',
         metric3Val: stn.interchange.length > 0 ? stn.interchange.join(', ') : 'Direct Feeder Needed',
-        metric4Label: 'Multimodal Status',
         metric4Val: isInterchange ? 'High Priority Hub' : 'Standard Stop'
       });
     });
@@ -280,15 +276,15 @@ function renderMetroLines() {
   const aquaCoords = aqua.stations.map(s => s.coords);
   L.polyline(aquaCoords, {
     color: '#06b6d4',
-    weight: 6,
-    opacity: 0.9,
+    weight: 5,
+    opacity: 0.95,
     lineCap: 'round',
     lineJoin: 'round'
   }).addTo(state.layers.aqua);
 
   L.polyline(aquaCoords, {
     color: '#22d3ee',
-    weight: 12,
+    weight: 11,
     opacity: 0.25,
     lineCap: 'round'
   }).addTo(state.layers.aqua);
@@ -306,9 +302,9 @@ function renderMetroLines() {
 
     marker.bindPopup(`
       <div style="font-family:sans-serif; padding:4px;">
-        <span style="font-size:10px; font-weight:700; color:#67e8f9; text-transform:uppercase;">Line 2 • Aqua Line</span>
-        <h4 style="margin:2px 0 6px; font-size:14px; color:#fff;">${stn.name}</h4>
-        <div style="font-size:11px; color:#cbd5e1;">Interchange: ${stn.interchange.join(', ') || 'Local Access'}</div>
+        <span style="font-size:10px; font-weight:700; color:#67e8f9; text-transform:uppercase; letter-spacing:0.04em;">Line 2 • Aqua Line</span>
+        <h4 style="margin:2px 0 6px; font-size:14px; color:#fff; font-weight:700;">${stn.name}</h4>
+        <div style="font-size:11px; color:#cbd5e1;"><b>Interchange:</b> ${stn.interchange.join(', ') || 'Local Access'}</div>
       </div>
     `);
 
@@ -319,13 +315,9 @@ function renderMetroLines() {
         name: `${stn.name} (Line 2)`,
         coords: `${stn.coords[0].toFixed(4)}, ${stn.coords[1].toFixed(4)}`,
         desc: `Operational station on Pune Metro Aqua Line (Vanaz - Ramwadi corridor).`,
-        metric1Label: 'Daily Boardings',
         metric1Val: isInterchange ? '21,000 riders' : '7,800 riders',
-        metric2Label: 'Station Catchment',
         metric2Val: '500m Walk Buffer Active',
-        metric3Label: 'Connecting Bus Stops',
         metric3Val: stn.interchange.join(', ') || 'Feeder Bus Required',
-        metric4Label: 'Multimodal Status',
         metric4Val: isInterchange ? 'Major Urban Interchange' : 'Standard Stop'
       });
     });
@@ -335,9 +327,9 @@ function renderMetroLines() {
   const line3Coords = line3.stations.map(s => s.coords);
   L.polyline(line3Coords, {
     color: '#f59e0b',
-    weight: 5,
+    weight: 4.5,
     dashArray: '8, 8',
-    opacity: 0.9,
+    opacity: 0.95,
     lineCap: 'round'
   }).addTo(state.layers.line3);
 
@@ -354,8 +346,8 @@ function renderMetroLines() {
 
     marker.bindPopup(`
       <div style="font-family:sans-serif; padding:4px;">
-        <span style="font-size:10px; font-weight:700; color:#fde68a; text-transform:uppercase;">Line 3 (Under Const.)</span>
-        <h4 style="margin:2px 0 6px; font-size:14px; color:#fff;">${stn.name}</h4>
+        <span style="font-size:10px; font-weight:700; color:#fde68a; text-transform:uppercase; letter-spacing:0.04em;">Line 3 (Under Const.)</span>
+        <h4 style="margin:2px 0 6px; font-size:14px; color:#fff; font-weight:700;">${stn.name}</h4>
         <div style="font-size:11px; color:#cbd5e1;">PMRDA Hinjawadi IT Corridor</div>
       </div>
     `);
@@ -366,14 +358,10 @@ function renderMetroLines() {
         tagClass: 'tag-orange',
         name: `${stn.name} (Line 3)`,
         coords: `${stn.coords[0].toFixed(4)}, ${stn.coords[1].toFixed(4)}`,
-        desc: `High-tech IT elevated corridor executing under PPP model by PMRDA.`,
-        metric1Label: 'Projected Daily Boardings',
-        metric1Val: '14,000 riders',
-        metric2Label: 'Target Completion',
-        metric2Val: 'Late 2026',
-        metric3Label: 'Feeder Need',
-        metric3Val: 'Hinjawadi Phase 2/3 Internal Circular E-Buses',
-        metric4Label: 'Agency',
+        desc: `High-capacity elevated IT corridor under PPP model by PMRDA.`,
+        metric1Val: '14,000 projected pax/day',
+        metric2Val: 'Late 2026 Target',
+        metric3Val: 'Hinjawadi Phase 2/3 Feeder E-Buses',
         metric4Val: 'PMRDA / Tata-Siemens'
       });
     });
@@ -386,14 +374,14 @@ function renderPMPMLCorridors() {
     const poly = L.polyline(route.coordinates, {
       color: route.color,
       weight: 3.5,
-      dashArray: '4, 6',
+      dashArray: '5, 6',
       opacity: 0.85
     }).addTo(state.layers.pmpml);
 
     poly.bindPopup(`
       <div style="font-family:sans-serif; padding:4px;">
-        <span style="font-size:10px; font-weight:700; color:#fca5a5; text-transform:uppercase;">PMPML Bus Trunk</span>
-        <h4 style="margin:2px 0 6px; font-size:13px; color:#fff;">${route.name}</h4>
+        <span style="font-size:10px; font-weight:700; color:#fca5a5; text-transform:uppercase; letter-spacing:0.04em;">PMPML Bus Trunk</span>
+        <h4 style="margin:2px 0 6px; font-size:13px; color:#fff; font-weight:700;">${route.name}</h4>
         <div style="font-size:11px; color:#e2e8f0;">Headway: Every ${route.frequencyMins} mins | Buses: ${route.busesInService}</div>
         <div style="font-size:10px; color:#cbd5e1; margin-top:4px;">${route.overlapStatus}</div>
       </div>
@@ -406,13 +394,9 @@ function renderPMPMLCorridors() {
         name: route.name,
         coords: 'Network Spine Corridor',
         desc: `Key arterial bus route. Overlap status: ${route.overlapStatus}`,
-        metric1Label: 'Daily Bus Ridership',
         metric1Val: `${route.dailyCommuters.toLocaleString()} pax/day`,
-        metric2Label: 'Fleet Allocated',
         metric2Val: `${route.busesInService} Buses (${route.frequencyMins} min frequency)`,
-        metric3Label: 'Rationalization Potential',
         metric3Val: route.overlapStatus.includes('Overlap') ? 'High Overlap (Convert to Feeders)' : 'Keep as Radial Trunk',
-        metric4Label: 'Fuel Consumption',
         metric4Val: `~${(route.busesInService * 65).toLocaleString()} L Diesel/day`
       });
     });
@@ -444,17 +428,17 @@ function renderCatchmentBuffers() {
 function renderTransitGapPolygons() {
   TRANSIT_DESERT_ZONES.forEach(gap => {
     const polygon = L.polygon(gap.polygon, {
-      fillColor: '#ef4444',
+      fillColor: '#f43f5e',
       fillOpacity: 0.22,
-      color: '#ef4444',
+      color: '#f43f5e',
       weight: 2,
       dashArray: '5, 5'
     }).addTo(state.layers.gaps);
 
     polygon.bindPopup(`
       <div style="font-family:sans-serif; padding:4px;">
-        <span style="font-size:10px; font-weight:700; color:#fca5a5; text-transform:uppercase;">Transit Desert (Gap Zone)</span>
-        <h4 style="margin:2px 0 6px; font-size:14px; color:#fff;">${gap.name}</h4>
+        <span style="font-size:10px; font-weight:700; color:#fca5a5; text-transform:uppercase; letter-spacing:0.04em;">Transit Desert (Gap Zone)</span>
+        <h4 style="margin:2px 0 6px; font-size:14px; color:#fff; font-weight:700;">${gap.name}</h4>
         <div style="font-size:11px; color:#e2e8f0;">Pop: ${gap.population.toLocaleString()} | Nearest Metro: ${gap.nearestMetroDistKm} km</div>
         <div style="font-size:11px; color:#cbd5e1; margin-top:3px;">Avg Bus Wait: <b>${gap.avgBusWaitMins} mins</b></div>
       </div>
@@ -467,13 +451,9 @@ function renderTransitGapPolygons() {
         name: gap.name,
         coords: 'High Density Settlement',
         desc: `Severe public transport vacuum. Population is over ${gap.population.toLocaleString()} with average ${gap.avgBusWaitMins} min bus wait time and ${gap.nearestMetroDistKm} km distance to nearest metro.`,
-        metric1Label: 'Population Affected',
         metric1Val: `${gap.population.toLocaleString()} citizens`,
-        metric2Label: 'Nearest Metro',
         metric2Val: `${gap.nearestMetroName} (${gap.nearestMetroDistKm} km)`,
-        metric3Label: 'Congestion Index',
         metric3Val: `${gap.congestionIndex} / 10 (Severe)`,
-        metric4Label: 'Solution Feeder',
         metric4Val: gap.recommendedFeeder
       });
     });
@@ -486,20 +466,20 @@ function renderMultimodalHubs() {
     const hubIcon = L.divIcon({
       className: 'custom-hub-icon',
       html: `
-        <div style="background:#f59e0b; width:22px; height:22px; border-radius:50%; border:2px solid #fff; display:flex; align-items:center; justify-content:center; box-shadow:0 0 12px rgba(245,158,11,0.8); cursor:pointer;">
-          <span style="font-size:11px; font-weight:800; color:#000;">H</span>
+        <div style="background:#f59e0b; width:24px; height:24px; border-radius:50%; border:2px solid #fff; display:flex; align-items:center; justify-content:center; box-shadow:0 0 14px rgba(245,158,11,0.8); cursor:pointer;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
         </div>
       `,
-      iconSize: [22, 22],
-      iconAnchor: [11, 11]
+      iconSize: [24, 24],
+      iconAnchor: [12, 12]
     });
 
     const marker = L.marker(hub.coords, { icon: hubIcon }).addTo(state.layers.hubs);
 
     marker.bindPopup(`
       <div style="font-family:sans-serif; padding:4px;">
-        <span style="font-size:10px; font-weight:700; color:#fde68a; text-transform:uppercase;">Multimodal Interchange</span>
-        <h4 style="margin:2px 0 6px; font-size:14px; color:#fff;">${hub.name}</h4>
+        <span style="font-size:10px; font-weight:700; color:#fde68a; text-transform:uppercase; letter-spacing:0.04em;">Multimodal Interchange</span>
+        <h4 style="margin:2px 0 6px; font-size:14px; color:#fff; font-weight:700;">${hub.name}</h4>
         <div style="font-size:11px; color:#e2e8f0;">Friction Score: <b>${hub.overallFrictionScore}/100</b></div>
         <div style="font-size:11px; color:#cbd5e1;">Walk to Feeder: ${hub.avgTransferWalkMeters}m | Wait: ${hub.avgTransferWaitMins} min</div>
       </div>
@@ -512,13 +492,9 @@ function renderMultimodalHubs() {
         name: hub.name,
         coords: `${hub.coords[0].toFixed(4)}, ${hub.coords[1].toFixed(4)}`,
         desc: hub.keyIssue,
-        metric1Label: 'Daily Transfers',
         metric1Val: `${hub.dailyTransfers.toLocaleString()} commuters`,
-        metric2Label: 'Transfer Delay Score',
         metric2Val: `${hub.overallFrictionScore} / 100 (${hub.overallFrictionScore > 70 ? 'High Friction' : 'Moderate'})`,
-        metric3Label: 'Walk to Bus Feeder',
         metric3Val: `${hub.avgTransferWalkMeters} meters (~${Math.round(hub.avgTransferWalkMeters / 75)} mins walk)`,
-        metric4Label: 'Modal Integration',
         metric4Val: hub.modes.join(', ')
       });
     });
@@ -537,8 +513,8 @@ function renderProposedFeeders() {
 
     poly.bindPopup(`
       <div style="font-family:sans-serif; padding:4px;">
-        <span style="font-size:10px; font-weight:700; color:#6ee7b7; text-transform:uppercase;">Simulated Feeder Route</span>
-        <h4 style="margin:2px 0 6px; font-size:13px; color:#fff;">${feeder.name}</h4>
+        <span style="font-size:10px; font-weight:700; color:#6ee7b7; text-transform:uppercase; letter-spacing:0.04em;">Simulated Feeder Route</span>
+        <h4 style="margin:2px 0 6px; font-size:13px; color:#fff; font-weight:700;">${feeder.name}</h4>
         <div style="font-size:11px; color:#e2e8f0;">Length: ${feeder.lengthKm} km | Headway: ${feeder.frequencyMins} mins</div>
         <div style="font-size:11px; color:#34d399; margin-top:2px;">Pop Gain: +${feeder.popCoverageGain.toLocaleString()}</div>
       </div>
@@ -587,13 +563,9 @@ function handleFeederSimulationChange(feederId, zoomTo = false) {
     name: feeder.name,
     coords: `Feeder Corridor (${feeder.lengthKm} km)`,
     desc: `Optimized electric feeder loop connecting underserved zone to ${feeder.connectsToMetro}. Replaces long informal auto-rickshaw rides with reliable 9m EV buses.`,
-    metric1Label: 'Target Coverage Gain',
     metric1Val: `+${feeder.popCoverageGain.toLocaleString()} residents`,
-    metric2Label: 'Fleet Requirement',
     metric2Val: `${feeder.fleetAllocated} E-Buses (${feeder.frequencyMins} min frequency)`,
-    metric3Label: 'Commuter Wait Reduction',
     metric3Val: `Saved ${feeder.avgWaitReductionMins} mins per trip`,
-    metric4Label: 'Projected Daily Ridership',
     metric4Val: `${feeder.estDailyRiders.toLocaleString()} passengers/day`
   });
 
@@ -639,20 +611,20 @@ function populateMCATable() {
   if (!tbody) return;
 
   tbody.innerHTML = MULTIMODAL_HUBS.map(hub => {
-    const frictionColor = hub.overallFrictionScore > 75 ? '#ef4444' : hub.overallFrictionScore > 45 ? '#f59e0b' : '#10b981';
+    const frictionColor = hub.overallFrictionScore > 75 ? '#f43f5e' : hub.overallFrictionScore > 45 ? '#f59e0b' : '#10b981';
     return `
       <tr>
         <td>
-          <div style="font-weight:700; color:#fff;">${hub.name}</div>
+          <div style="font-weight:700; color:#fff; font-size:0.86rem;">${hub.name}</div>
           <span style="font-size:10px; color:var(--text-muted);">${hub.signageScore} Signage Rating</span>
         </td>
         <td>
-          <div style="display:flex; flex-wrap:wrap; gap:3px;">
-            ${hub.modes.map(m => `<span style="font-size:10px; padding:2px 5px; background:rgba(255,255,255,0.06); border-radius:4px;">${m}</span>`).join('')}
+          <div style="display:flex; flex-wrap:wrap; gap:4px;">
+            ${hub.modes.map(m => `<span style="font-size:10px; padding:2px 6px; background:rgba(255,255,255,0.06); border-radius:4px; border:1px solid var(--border-subtle);">${m}</span>`).join('')}
           </div>
         </td>
         <td style="font-family:var(--font-mono); font-weight:600;">${hub.avgTransferWalkMeters} m</td>
-        <td style="font-family:var(--font-mono); font-weight:600; color:${hub.avgTransferWaitMins > 12 ? '#f87171' : '#38bdf8'};">${hub.avgTransferWaitMins} min</td>
+        <td style="font-family:var(--font-mono); font-weight:600; color:${hub.avgTransferWaitMins > 12 ? '#fb7185' : '#38bdf8'};">${hub.avgTransferWaitMins} min</td>
         <td style="font-family:var(--font-mono);">${hub.dailyTransfers.toLocaleString()}</td>
         <td>
           <div class="friction-meter">
@@ -662,7 +634,7 @@ function populateMCATable() {
             </div>
           </div>
         </td>
-        <td style="font-size:11px; color:#cbd5e1; max-width:260px;">${hub.keyIssue}</td>
+        <td style="font-size:11px; color:#cbd5e1; max-width:260px; line-height:1.4;">${hub.keyIssue}</td>
       </tr>
     `;
   }).join('');
@@ -680,8 +652,8 @@ function renderHubDelayCharts() {
           {
             label: 'Avg Transfer Wait (mins)',
             data: MULTIMODAL_HUBS.map(h => h.avgTransferWaitMins),
-            backgroundColor: 'rgba(239, 68, 68, 0.75)',
-            borderColor: '#ef4444',
+            backgroundColor: 'rgba(244, 63, 94, 0.75)',
+            borderColor: '#f43f5e',
             borderWidth: 1,
             borderRadius: 6
           },
@@ -699,11 +671,11 @@ function renderHubDelayCharts() {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { labels: { color: '#94a3b8', font: { family: 'Outfit', size: 11 } } }
+          legend: { labels: { color: '#cbd5e1', font: { family: 'Outfit', size: 11 } } }
         },
         scales: {
-          x: { ticks: { color: '#cbd5e1', font: { family: 'Outfit' } }, grid: { color: 'rgba(255,255,255,0.05)' } },
-          y: { ticks: { color: '#94a3b8', font: { family: 'Outfit' } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+          x: { ticks: { color: '#cbd5e1', font: { family: 'Outfit' } }, grid: { color: 'rgba(255,255,255,0.06)' } },
+          y: { ticks: { color: '#94a3b8', font: { family: 'Outfit' } }, grid: { color: 'rgba(255,255,255,0.06)' } }
         }
       }
     });
@@ -721,8 +693,8 @@ function renderHubDelayCharts() {
           {
             label: 'Swargate Hub (min wait)',
             data: [8, 18, 24, 16, 10, 9, 21, 26, 22, 14, 8],
-            borderColor: '#ef4444',
-            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            borderColor: '#f43f5e',
+            backgroundColor: 'rgba(244, 63, 94, 0.12)',
             fill: true,
             tension: 0.4
           },
@@ -730,7 +702,7 @@ function renderHubDelayCharts() {
             label: 'Pune Station (min wait)',
             data: [10, 19, 23, 17, 12, 11, 22, 25, 20, 15, 9],
             borderColor: '#f59e0b',
-            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+            backgroundColor: 'rgba(245, 158, 11, 0.12)',
             fill: true,
             tension: 0.4
           },
@@ -738,7 +710,7 @@ function renderHubDelayCharts() {
             label: 'Civil Court (min wait)',
             data: [3, 6, 8, 5, 4, 4, 7, 9, 8, 5, 3],
             borderColor: '#06b6d4',
-            backgroundColor: 'rgba(6, 182, 212, 0.1)',
+            backgroundColor: 'rgba(6, 182, 212, 0.12)',
             fill: true,
             tension: 0.4
           }
@@ -748,11 +720,11 @@ function renderHubDelayCharts() {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { labels: { color: '#94a3b8', font: { family: 'Outfit', size: 11 } } }
+          legend: { labels: { color: '#cbd5e1', font: { family: 'Outfit', size: 11 } } }
         },
         scales: {
-          x: { ticks: { color: '#cbd5e1', font: { family: 'Outfit' } }, grid: { color: 'rgba(255,255,255,0.05)' } },
-          y: { ticks: { color: '#94a3b8', font: { family: 'Outfit' } }, grid: { color: 'rgba(255,255,255,0.05)' } }
+          x: { ticks: { color: '#cbd5e1', font: { family: 'Outfit' } }, grid: { color: 'rgba(255,255,255,0.06)' } },
+          y: { ticks: { color: '#94a3b8', font: { family: 'Outfit' } }, grid: { color: 'rgba(255,255,255,0.06)' } }
         }
       }
     });
@@ -808,11 +780,16 @@ function renderSurveyResponsesFeed() {
   container.innerHTML = state.surveyData.responsesList.map(r => `
     <div class="response-bubble">
       <div class="response-header">
-        <span style="font-weight:700; color:#cbd5e1;">${r.occupation} (${r.age}) • ${r.residence} ➔ ${r.workplace}</span>
+        <span style="font-weight:700; color:#f1f5f9; display:flex; align-items:center; gap:5px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+          ${r.occupation} (${r.age}) • ${r.residence} ➔ ${r.workplace}
+        </span>
         <span class="inspector-tag tag-purple" style="font-size:9px;">${r.primaryMode}</span>
       </div>
       <p class="response-quote">"${r.metroTransferChallenge}"</p>
-      <div style="font-size:10px; color:#34d399;"><b>Suggested Feeder:</b> ${r.recommendedFeederLocation}</div>
+      <div style="font-size:10.5px; color:#34d399; font-weight:500;">
+        <b>Suggested Feeder:</b> ${r.recommendedFeederLocation}
+      </div>
     </div>
   `).join('');
 }
@@ -832,7 +809,7 @@ function renderSurveyCharts() {
             state.surveyData.modalSplit.puneMetro,
             state.surveyData.modalSplit.autoShared
           ],
-          backgroundColor: ['#ef4444', '#f59e0b', '#8b5cf6', '#06b6d4'],
+          backgroundColor: ['#f43f5e', '#f59e0b', '#8b5cf6', '#06b6d4'],
           borderWidth: 2,
           borderColor: '#0f172a'
         }]
@@ -841,7 +818,7 @@ function renderSurveyCharts() {
         responsive: true,
         maintainAspectRatio: false,
         plugins: {
-          legend: { position: 'right', labels: { color: '#94a3b8', font: { family: 'Outfit', size: 11 } } }
+          legend: { position: 'right', labels: { color: '#cbd5e1', font: { family: 'Outfit', size: 11.5 } } }
         }
       }
     });
@@ -872,8 +849,8 @@ function renderSurveyCharts() {
           legend: { display: false }
         },
         scales: {
-          x: { ticks: { color: '#94a3b8', font: { family: 'Outfit' } }, grid: { color: 'rgba(255,255,255,0.05)' }, max: 100 },
-          y: { ticks: { color: '#cbd5e1', font: { family: 'Outfit', size: 11 } }, grid: { display: false } }
+          x: { ticks: { color: '#94a3b8', font: { family: 'Outfit' } }, grid: { color: 'rgba(255,255,255,0.06)' }, max: 100 },
+          y: { ticks: { color: '#f1f5f9', font: { family: 'Outfit', size: 11.5 } }, grid: { display: false } }
         }
       }
     });
@@ -926,19 +903,15 @@ function initPolicyCalculator() {
     document.getElementById('val-fare-discount').innerText = `${discount}% Off Combined`;
 
     // Mathematical Sizing & Economics
-    // 1. Diesel fuel savings from removing parallel buses
-    const dieselSavingsCr = ((saved * dailyKm * 300 * 0.42 * 94) / 10000000).toFixed(1); // 0.42 L/km @ ₹94/L
+    const dieselSavingsCr = ((saved * dailyKm * 300 * 0.42 * 94) / 10000000).toFixed(1);
     document.getElementById('calc-fuel-savings').innerText = `₹ ${dieselSavingsCr} Cr`;
 
-    // 2. Daily feeder ridership
     const dailyFeederRiders = Math.round(fleet * 1900 * (1 + (discount * 0.008)));
     document.getElementById('calc-feeder-riders').innerText = dailyFeederRiders.toLocaleString();
 
-    // 3. CO2 emissions prevented
     const co2TonsDay = ((dailyFeederRiders * 6.5 * 0.142) / 1000).toFixed(1);
     document.getElementById('calc-co2-saved').innerText = `${co2TonsDay} Tons/day`;
 
-    // 4. Tree offset equivalent
     const treeOffset = Math.round(parseFloat(co2TonsDay) * 45);
     document.getElementById('calc-tree-offset').innerText = `${treeOffset} Trees/yr`;
   }
@@ -961,9 +934,9 @@ function renderGovernanceMatrix() {
         <h4 class="gov-title">${item.agency}</h4>
         <span class="gov-pill">Stakeholder</span>
       </div>
-      <p style="font-size:11px; color:#cbd5e1; line-height:1.4;"><b>Primary Role:</b> ${item.role}</p>
-      <div style="font-size:11px; color:#f87171; line-height:1.4;"><b>Current Silo:</b> ${item.currentSilo}</div>
-      <div style="font-size:11px; color:#34d399; line-height:1.4; border-top:1px solid var(--border-subtle); padding-top:6px;">
+      <p style="font-size:11.5px; color:#cbd5e1; line-height:1.45;"><b>Primary Role:</b> ${item.role}</p>
+      <div style="font-size:11.5px; color:#fb7185; line-height:1.45;"><b>Current Silo:</b> ${item.currentSilo}</div>
+      <div style="font-size:11.5px; color:#34d399; line-height:1.45; border-top:1px solid var(--border-subtle); padding-top:6px;">
         <b>Multi-Modal Action:</b> ${item.integrationRequirement}
       </div>
     </div>
@@ -997,11 +970,11 @@ function initGISDataHub() {
       dropzone.style.borderColor = '#8b5cf6';
     });
     dropzone.addEventListener('dragleave', () => {
-      dropzone.style.borderColor = 'rgba(139, 92, 246, 0.4)';
+      dropzone.style.borderColor = 'rgba(139, 92, 246, 0.45)';
     });
     dropzone.addEventListener('drop', (e) => {
       e.preventDefault();
-      dropzone.style.borderColor = 'rgba(139, 92, 246, 0.4)';
+      dropzone.style.borderColor = 'rgba(139, 92, 246, 0.45)';
       if (e.dataTransfer.files.length > 0) {
         processUploadedGeoJSON(e.dataTransfer.files[0]);
       }
@@ -1047,8 +1020,8 @@ function processUploadedGeoJSON(file) {
           const props = feature.properties || {};
           layer.bindPopup(`
             <div style="font-family:sans-serif; padding:4px;">
-              <span style="font-size:10px; font-weight:700; color:#f472b6;">CUSTOM GIS LAYER</span>
-              <h4 style="margin:2px 0; color:#fff;">${props.name || 'Imported Feature'}</h4>
+              <span style="font-size:10px; font-weight:700; color:#f472b6; letter-spacing:0.04em;">CUSTOM GIS LAYER</span>
+              <h4 style="margin:2px 0; color:#fff; font-weight:700;">${props.name || 'Imported Feature'}</h4>
               <div style="font-size:11px; color:#cbd5e1;">${props.description || 'Imported from QGIS/ArcGIS GeoJSON'}</div>
             </div>
           `);
