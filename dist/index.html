@@ -9,8 +9,8 @@
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
   <!-- Stylesheet -->
-  <script type="module" crossorigin src="/assets/index-DqJMzInj.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-7hL9ZgWE.css">
+  <script type="module" crossorigin src="/assets/index-D3rixSiD.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-goxrgOW5.css">
 </head>
 <body>
 
@@ -298,6 +298,46 @@
                 </div>
               </label>
             </div>
+
+            <!-- Municipal Wards Layer Group (From IMP ArcGIS Project) -->
+            <div class="layer-group">
+              <span class="layer-group-title">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+                Municipal Wards & Demographics (ArcGIS Data)
+              </span>
+              
+              <label class="layer-toggle-card">
+                <div class="layer-info">
+                  <div class="layer-icon-badge" style="background:rgba(37,99,235,0.15); color:#2563eb; border:1px solid rgba(37,99,235,0.35);">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+                  </div>
+                  <div>
+                    <div class="layer-name">PMC Pune Core (41 Wards)</div>
+                    <div class="layer-subtext">South/Central Pune population polygons</div>
+                  </div>
+                </div>
+                <div class="switch">
+                  <input type="checkbox" id="toggle-pmc-wards" checked>
+                  <span class="slider blue"></span>
+                </div>
+              </label>
+
+              <label class="layer-toggle-card">
+                <div class="layer-info">
+                  <div class="layer-icon-badge" style="background:rgba(16,185,129,0.15); color:#059669; border:1px solid rgba(16,185,129,0.35);">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/></svg>
+                  </div>
+                  <div>
+                    <div class="layer-name">PCMC Twin City (32 Wards)</div>
+                    <div class="layer-subtext">North Pimpri-Chinchwad municipal bounds</div>
+                  </div>
+                </div>
+                <div class="switch">
+                  <input type="checkbox" id="toggle-pcmc-wards" checked>
+                  <span class="slider green"></span>
+                </div>
+              </label>
+            </div>
           </div>
         </aside>
 
@@ -307,14 +347,20 @@
 
           <!-- Floating Controls on Map -->
           <div class="map-floating-hud">
-            <button class="map-hud-btn" id="btn-focus-pune">
+            <button class="map-hud-btn" id="btn-focus-pune" title="Center on Pune Civil Court">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
               Center Pune
             </button>
-            <button class="map-hud-btn" id="btn-toggle-tiles">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
-              Switch basemap
+            <button class="map-hud-btn" id="btn-fit-region" title="Fit Entire Pune & PCMC Metropolitan Area">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+              Fit Full Region
             </button>
+            <select class="map-hud-select" id="select-basemap" title="Choose Map Style">
+              <option value="street">🗺️ India Street Map</option>
+              <option value="satellite">🛰️ Satellite Aerial</option>
+              <option value="osm">🌐 OpenStreetMap</option>
+              <option value="dark">🌙 Dark GIS Canvas</option>
+            </select>
           </div>
 
           <!-- Interactive Map Legend -->
@@ -325,6 +371,8 @@
             <div class="legend-item"><span class="legend-line" style="background:#f59e0b; border-style:dashed;"></span> Line 3: Hinjawadi Metro</div>
             <div class="legend-item"><span class="legend-line" style="background:#f43f5e; border-style:dotted;"></span> PMPML Bus Corridors</div>
             <div class="legend-item"><span class="legend-line" style="background:#10b981;"></span> Proposed Feeder Loops</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#2563eb;"></span> PMC Pune Wards (41)</div>
+            <div class="legend-item"><span class="legend-dot" style="background:#059669;"></span> PCMC Twin City Wards (32)</div>
             <div class="legend-item"><span class="legend-dot" style="background:#f43f5e;"></span> High Delay Transit Desert</div>
           </div>
         </div>

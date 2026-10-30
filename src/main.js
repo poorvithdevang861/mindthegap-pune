@@ -15,6 +15,7 @@ import {
   INITIAL_SURVEY_ANALYTICS,
   POLICY_ECONOMIC_DATA
 } from './data/gis_pune.js';
+import { PUNE_FULL_WARDS } from './data/pune_full_wards.js';
 
 // Global App State
 const state = {
@@ -30,6 +31,10 @@ const state = {
     gaps: null,
     hubs: null,
     feeders: null,
+    pmcWards: null,
+    pcmcWards: null,
+    selectedWardLayer: null,
+    selectedWardGeojson: null,
     activeFeederHighlight: null,
     customUploaded: null
   },
@@ -128,20 +133,46 @@ function initGISMap() {
     attributionControl: false
   });
 
-  // Basemap tile layers — light OSM by default for light UI
-  const darkTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-    maxZoom: 19,
-    subdomains: 'abcd'
-  });
+  // Create custom z-index panes so polygons never obscure metro lines or block station clicks
+  state.map.createPane('wardsPane');
+  state.map.getPane('wardsPane').style.zIndex = 350;
 
-  const osmTiles = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-    maxZoom: 19,
-    subdomains: 'abcd'
-  });
+  state.map.createPane('buffersPane');
+  state.map.getPane('buffersPane').style.zIndex = 380;
 
-  osmTiles.addTo(state.map);
-  state.darkTiles = darkTiles;
-  state.osmTiles = osmTiles;
+  state.map.createPane('corridorsPane');
+  state.map.getPane('corridorsPane').style.zIndex = 450;
+
+  state.map.createPane('metroPane');
+  state.map.getPane('metroPane').style.zIndex = 520;
+
+  state.map.createPane('stationsPane');
+  state.map.getPane('stationsPane').style.zIndex = 650;
+
+  // High-Resolution Basemap Tile Providers (Accurate India Maps without watermarks)
+  const basemapLayers = {
+    street: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19,
+      attribution: '&copy; Esri &mdash; Survey of India & OpenStreetMap'
+    }),
+    satellite: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19,
+      attribution: '&copy; Esri, Maxar, Earthstar Geographics'
+    }),
+    osm: L.tileLayer('https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; OpenStreetMap contributors, Humanitarian OpenStreetMap Team'
+    }),
+    dark: L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19,
+      attribution: '&copy; Esri &mdash; Esri, DeLorme, NAVTEQ'
+    })
+  };
+
+  // Add default India Street Map
+  basemapLayers.street.addTo(state.map);
+  state.basemapLayers = basemapLayers;
+  state.currentBasemapKey = 'street';
 
   // Layer Groups
   state.layers.purple = L.layerGroup().addTo(state.map);
@@ -152,42 +183,57 @@ function initGISMap() {
   state.layers.gaps = L.layerGroup().addTo(state.map);
   state.layers.hubs = L.layerGroup().addTo(state.map);
   state.layers.feeders = L.layerGroup().addTo(state.map);
+  state.layers.pmcWards = L.layerGroup().addTo(state.map);
+  state.layers.pcmcWards = L.layerGroup().addTo(state.map);
   state.layers.activeFeederHighlight = L.layerGroup().addTo(state.map);
   state.layers.customUploaded = L.layerGroup().addTo(state.map);
 
-  // Render All Spatial Layers
-  renderMetroLines();
-  renderPMPMLCorridors();
+  // Render All Spatial Layers in proper geographic hierarchy
+  renderPuneFullWards();
   renderCatchmentBuffers();
   renderTransitGapPolygons();
-  renderMultimodalHubs();
+  renderPMPMLCorridors();
+  renderMetroLines();
   renderProposedFeeders();
+  renderMultimodalHubs();
 
   // Floating controls on Map
   document.getElementById('btn-focus-pune')?.addEventListener('click', () => {
     state.map.setView(PUNE_CENTER, DEFAULT_ZOOM, { animate: true });
   });
 
-  document.getElementById('btn-toggle-tiles')?.addEventListener('click', () => {
-    if (state.activeTileLayer === 'dark') {
-      state.map.removeLayer(state.darkTiles);
-      state.osmTiles.addTo(state.map);
-      state.activeTileLayer = 'osm';
-    } else {
-      state.map.removeLayer(state.osmTiles);
-      state.darkTiles.addTo(state.map);
-      state.activeTileLayer = 'dark';
-    }
+  // Fit Entire Metropolitan Region (PMC + PCMC bounds)
+  document.getElementById('btn-fit-region')?.addEventListener('click', () => {
+    // Fits both PCMC (North) and PMC (South) bounding box accurately
+    const puneRegionBounds = L.latLngBounds(
+      [18.38556, 73.71040],
+      [18.72107, 74.01831]
+    );
+    state.map.fitBounds(puneRegionBounds, { padding: [20, 20], animate: true });
   });
+
+  // Basemap Selector Switcher
+  const basemapSelect = document.getElementById('select-basemap');
+  if (basemapSelect) {
+    basemapSelect.addEventListener('change', (e) => {
+      const selectedKey = e.target.value;
+      if (state.basemapLayers[selectedKey] && state.currentBasemapKey !== selectedKey) {
+        state.map.removeLayer(state.basemapLayers[state.currentBasemapKey]);
+        state.basemapLayers[selectedKey].addTo(state.map);
+        state.currentBasemapKey = selectedKey;
+      }
+    });
+  }
 
   document.getElementById('btn-reset-map')?.addEventListener('click', () => {
     state.map.setView(PUNE_CENTER, DEFAULT_ZOOM);
-    ['purple', 'aqua', 'line3', 'pmpml', 'catchment', 'gaps', 'hubs', 'feeders'].forEach(layerKey => {
+    ['purple', 'aqua', 'line3', 'pmpml', 'catchment', 'gaps', 'hubs', 'feeders', 'pmc-wards', 'pcmc-wards'].forEach(layerKey => {
       const toggle = document.getElementById(`toggle-${layerKey}`);
       if (toggle) {
         toggle.checked = true;
-        if (!state.map.hasLayer(state.layers[layerKey])) {
-          state.map.addLayer(state.layers[layerKey]);
+        const key = layerKey === 'pmc-wards' ? 'pmcWards' : layerKey === 'pcmc-wards' ? 'pcmcWards' : layerKey;
+        if (state.layers[key] && !state.map.hasLayer(state.layers[key])) {
+          state.map.addLayer(state.layers[key]);
         }
       }
     });
@@ -202,6 +248,8 @@ function initGISMap() {
   setupLayerToggle('toggle-gaps', 'gaps');
   setupLayerToggle('toggle-hubs', 'hubs');
   setupLayerToggle('toggle-feeders', 'feeders');
+  setupLayerToggle('toggle-pmc-wards', 'pmcWards');
+  setupLayerToggle('toggle-pcmc-wards', 'pcmcWards');
 }
 
 function setupLayerToggle(elementId, layerKey) {
@@ -223,6 +271,7 @@ function renderMetroLines() {
   // Purple Line
   const purpleCoords = purple.stations.map(s => s.coords);
   L.polyline(purpleCoords, {
+    pane: 'metroPane',
     color: '#8b5cf6',
     weight: 5,
     opacity: 0.95,
@@ -232,6 +281,7 @@ function renderMetroLines() {
 
   // Purple Glow layer
   L.polyline(purpleCoords, {
+    pane: 'metroPane',
     color: '#a78bfa',
     weight: 11,
     opacity: 0.25,
@@ -241,6 +291,7 @@ function renderMetroLines() {
   purple.stations.forEach(stn => {
     const isInterchange = stn.type === 'interchange' || stn.type === 'major_hub';
     const marker = L.circleMarker(stn.coords, {
+      pane: 'stationsPane',
       radius: isInterchange ? 8 : 5,
       fillColor: '#8b5cf6',
       color: '#ffffff',
@@ -275,6 +326,7 @@ function renderMetroLines() {
   // Aqua Line
   const aquaCoords = aqua.stations.map(s => s.coords);
   L.polyline(aquaCoords, {
+    pane: 'metroPane',
     color: '#06b6d4',
     weight: 5,
     opacity: 0.95,
@@ -283,6 +335,7 @@ function renderMetroLines() {
   }).addTo(state.layers.aqua);
 
   L.polyline(aquaCoords, {
+    pane: 'metroPane',
     color: '#22d3ee',
     weight: 11,
     opacity: 0.25,
@@ -292,6 +345,7 @@ function renderMetroLines() {
   aqua.stations.forEach(stn => {
     const isInterchange = stn.type === 'interchange' || stn.type === 'major_hub';
     const marker = L.circleMarker(stn.coords, {
+      pane: 'stationsPane',
       radius: isInterchange ? 8 : 5,
       fillColor: '#06b6d4',
       color: '#ffffff',
@@ -326,6 +380,7 @@ function renderMetroLines() {
   // Line 3 (Hinjawadi Metro)
   const line3Coords = line3.stations.map(s => s.coords);
   L.polyline(line3Coords, {
+    pane: 'metroPane',
     color: '#f59e0b',
     weight: 4.5,
     dashArray: '8, 8',
@@ -336,6 +391,7 @@ function renderMetroLines() {
   line3.stations.forEach(stn => {
     const isInterchange = stn.type === 'interchange' || stn.type === 'major_hub';
     const marker = L.circleMarker(stn.coords, {
+      pane: 'stationsPane',
       radius: isInterchange ? 7 : 4.5,
       fillColor: '#f59e0b',
       color: '#ffffff',
@@ -372,6 +428,7 @@ function renderMetroLines() {
 function renderPMPMLCorridors() {
   PMPML_BUS_CORRIDORS.forEach(route => {
     const poly = L.polyline(route.coordinates, {
+      pane: 'corridorsPane',
       color: route.color,
       weight: 3.5,
       dashArray: '5, 6',
@@ -413,6 +470,7 @@ function renderCatchmentBuffers() {
 
   allStations.forEach(stn => {
     L.circle(stn.coords, {
+      pane: 'buffersPane',
       radius: 500, // 500 meters
       fillColor: '#8b5cf6',
       fillOpacity: 0.08,
@@ -428,6 +486,7 @@ function renderCatchmentBuffers() {
 function renderTransitGapPolygons() {
   TRANSIT_DESERT_ZONES.forEach(gap => {
     const polygon = L.polygon(gap.polygon, {
+      pane: 'buffersPane',
       fillColor: '#f43f5e',
       fillOpacity: 0.22,
       color: '#f43f5e',
@@ -480,7 +539,7 @@ function renderMultimodalHubs() {
       iconAnchor: [12, 12]
     });
 
-    const marker = L.marker(hub.coords, { icon: hubIcon }).addTo(state.layers.hubs);
+    const marker = L.marker(hub.coords, { icon: hubIcon, pane: 'stationsPane' }).addTo(state.layers.hubs);
 
     marker.bindPopup(`
       <div style="font-family:sans-serif; padding:4px;">
@@ -511,6 +570,7 @@ function renderMultimodalHubs() {
 function renderProposedFeeders() {
   PROPOSED_FEEDER_ROUTES.forEach(feeder => {
     const poly = L.polyline(feeder.coords, {
+      pane: 'metroPane',
       color: feeder.color,
       weight: 5,
       opacity: 0.85,
@@ -531,6 +591,128 @@ function renderProposedFeeders() {
       handleFeederSimulationChange(feeder.id, true);
     });
   });
+}
+
+// 2g. Render PMC & PCMC Wards (Imported from ArcGIS Pro IMP Project)
+function renderPuneFullWards() {
+  if (!PUNE_FULL_WARDS || !PUNE_FULL_WARDS.features) return;
+
+  // Split into PMC (South/Central Pune - 41 Wards) and PCMC (North Pune - 32 Wards)
+  const pmcFeatures = [];
+  const pcmcFeatures = [];
+
+  PUNE_FULL_WARDS.features.forEach(feat => {
+    const p = feat.properties || {};
+    const isPMC = Boolean(p.PMC_wards_2025_xlsx___PMC_41_Wards_2025_Population_csv_Ward_Name || p.Polygons_WardNumber);
+    if (isPMC) {
+      pmcFeatures.push(feat);
+    } else {
+      pcmcFeatures.push(feat);
+    }
+  });
+
+  function setupWardLayer(features, isPMC, targetLayerGroup) {
+    const geojsonLayer = L.geoJSON({ type: 'FeatureCollection', features }, {
+      pane: 'wardsPane',
+      style: () => ({
+        color: isPMC ? '#1d4ed8' : '#047857',
+        weight: 1.5,
+        opacity: 0.85,
+        fillColor: isPMC ? '#3b82f6' : '#10b981',
+        fillOpacity: 0.16
+      }),
+      onEachFeature: (feature, layer) => {
+        const p = feature.properties || {};
+        const corpName = isPMC ? 'PMC (Pune Corporation)' : 'PCMC (Pimpri Chinchwad)';
+        const wardNo = isPMC 
+          ? (p.Polygons_WardNumber || p.PMC_wards_2025_xlsx___PMC_41_Wards_2025_Population_csv_Ward_No || '')
+          : (p.Pimpri_Chinchwad_sourcewa_1 || p.PCMC_ward_wisepop_data_v3_csv_Ward_No || '');
+        
+        const wardName = isPMC 
+          ? (p.PMC_wards_2025_xlsx___PMC_41_Wards_2025_Population_csv_Ward_Name || `Ward ${wardNo}`)
+          : (p.PCMC_ward_wisepop_data_v3_csv_PCMC_Ward___Area_Name || p.Pimpri_Chinchwad_ward_lgd_n || `Ward ${wardNo}`);
+        
+        const pop2026 = Math.round(isPMC ? (p.Polygons_Pop_2026 || 0) : (p.Pimpri_Chinchwad_Pop_2026 || 0));
+        const pop2025 = isPMC ? (p.PMC_wards_2025_xlsx___PMC_41_Wards_2025_Population_csv_Population || 0) : (p.PCMC_ward_wisepop_data_v3_csv_Population || 0);
+        const rawArea = isPMC ? p.Shape_Area : (p.Pimpri_Chinchwad_st_area_sh || p.Shape_Area);
+        const areaKm2 = rawArea ? (rawArea / 1000000).toFixed(2) : 'N/A';
+        const vuln = p.Pimpri_Chinchwad_AMJ_Vulner || 'Standard';
+
+        // Tooltip on Hover
+        layer.bindTooltip(`
+          <div style="font-family:sans-serif; font-size:11px; padding:2px 4px;">
+            <b style="color:${isPMC ? '#1d4ed8' : '#047857'};">[${isPMC ? 'PMC' : 'PCMC'}] Ward ${wardNo}:</b> ${wardName}<br/>
+            <span style="color:#64748b;">Pop (2026): <b>${pop2026 > 0 ? pop2026.toLocaleString() : 'N/A'}</b></span>
+          </div>
+        `, { sticky: true, opacity: 0.95, pane: 'stationsPane' });
+
+        // Hover style transitions (only when not actively selected)
+        layer.on('mouseover', () => {
+          if (state.selectedWardLayer !== layer) {
+            layer.setStyle({
+              weight: 2.5,
+              fillOpacity: 0.32
+            });
+          }
+        });
+
+        layer.on('mouseout', () => {
+          if (state.selectedWardLayer !== layer) {
+            geojsonLayer.resetStyle(layer);
+          }
+        });
+
+        // Click to highlight exact ward polygon & update Inspector
+        layer.on('click', (e) => {
+          if (e && e.originalEvent) {
+            L.DomEvent.stopPropagation(e);
+          }
+
+          // Reset previous selected ward if any
+          if (state.selectedWardLayer && state.selectedWardGeojson) {
+            state.selectedWardGeojson.resetStyle(state.selectedWardLayer);
+          }
+
+          // Highlight the clicked ward along its exact boundary perimeter
+          state.selectedWardLayer = layer;
+          state.selectedWardGeojson = geojsonLayer;
+
+          layer.setStyle({
+            color: isPMC ? '#1e40af' : '#065f46',
+            weight: 3.5,
+            opacity: 1,
+            fillColor: isPMC ? '#3b82f6' : '#10b981',
+            fillOpacity: 0.45
+          });
+          layer.bringToFront();
+
+          updateInspector({
+            type: isPMC ? 'PMC WARD' : 'PCMC WARD',
+            tagClass: isPMC ? 'tag-blue' : 'tag-green',
+            name: `Ward ${wardNo}: ${wardName}`,
+            coords: corpName,
+            desc: `Municipal ward boundary polygon from the ArcGIS project. Covers approximately ${areaKm2} km² with an estimated 2026 population of ${pop2026 > 0 ? pop2026.toLocaleString() : 'N/A'}.`,
+            metric1Val: pop2026 > 0 ? `${pop2026.toLocaleString()} citizens` : 'N/A',
+            metric2Val: pop2025 > 0 ? `${pop2025.toLocaleString()} (2025)` : 'N/A',
+            metric3Val: `${areaKm2} km²`,
+            metric4Val: isPMC ? 'PMC Core' : `Vuln: ${vuln}`
+          });
+        });
+      }
+    }).addTo(targetLayerGroup);
+  }
+
+  // Clear ward selection when clicking anywhere else on the map
+  state.map.on('click', () => {
+    if (state.selectedWardLayer && state.selectedWardGeojson) {
+      state.selectedWardGeojson.resetStyle(state.selectedWardLayer);
+      state.selectedWardLayer = null;
+      state.selectedWardGeojson = null;
+    }
+  });
+
+  setupWardLayer(pmcFeatures, true, state.layers.pmcWards);
+  setupWardLayer(pcmcFeatures, false, state.layers.pcmcWards);
 }
 
 /* =========================================================================

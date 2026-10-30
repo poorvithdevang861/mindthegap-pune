@@ -2,7 +2,7 @@
 
 :root {
   /* Light premium surfaces */
-  --bg-base: #f3f5f8;
+  --bg-base: #fdfdfd;
   --bg-subtle: #e8ecf1;
   --bg-surface: #ffffff;
   --bg-elevated: #ffffff;
@@ -74,6 +74,15 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+}
+
+/* Remove rectangular browser focus outlines on Leaflet vector shapes */
+.leaflet-container path:focus,
+.leaflet-container svg:focus,
+path.leaflet-interactive:focus,
+.leaflet-interactive:focus {
+  outline: none !important;
+  box-shadow: none !important;
 }
 
 body {
@@ -541,6 +550,7 @@ input:checked + .slider.cyan { background-color: var(--accent-cyan); }
 input:checked + .slider.orange { background-color: var(--accent-amber); }
 input:checked + .slider.red { background-color: var(--accent-red); }
 input:checked + .slider.green { background-color: var(--accent-emerald); }
+input:checked + .slider.blue { background-color: #2563eb; }
 
 input:checked + .slider:before {
   transform: translateX(16px);
@@ -596,6 +606,27 @@ input:checked + .slider:before {
   background: var(--bg-surface);
   border-color: var(--border-medium);
   transform: translateY(-1px);
+}
+
+.map-hud-select {
+  background: var(--bg-glass);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-primary);
+  padding: 0.5rem 0.85rem;
+  border-radius: var(--radius-md);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.map-hud-select:hover {
+  background: var(--bg-surface);
+  border-color: var(--border-medium);
 }
 
 .map-legend-hud {
@@ -669,6 +700,7 @@ input:checked + .slider:before {
 .tag-orange { background: rgba(217, 119, 6, 0.1); color: var(--accent-amber); border: 1px solid rgba(217, 119, 6, 0.22); }
 .tag-red { background: rgba(225, 29, 72, 0.08); color: var(--accent-red); border: 1px solid rgba(225, 29, 72, 0.2); }
 .tag-green { background: rgba(5, 150, 105, 0.1); color: var(--accent-emerald); border: 1px solid rgba(5, 150, 105, 0.22); }
+.tag-blue { background: rgba(37, 99, 235, 0.1); color: #2563eb; border: 1px solid rgba(37, 99, 235, 0.22); }
 
 .detail-row {
   display: flex;
@@ -1394,4 +1426,5 @@ input:checked + .slider:before {
 .feeder-popup-stats-grid .stat-value.gain { color: #10b981; }
 .feeder-popup-stats-grid .stat-value.time { color: #06b6d4; }
 .feeder-popup-stats-grid .stat-value.fleet { color: #a78bfa; }
+
 
