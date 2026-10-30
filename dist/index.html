@@ -9,8 +9,8 @@
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
   <!-- Stylesheet -->
-  <script type="module" crossorigin src="/assets/index-D3rixSiD.js"></script>
-  <link rel="stylesheet" crossorigin href="/assets/index-goxrgOW5.css">
+  <script type="module" crossorigin src="/assets/index-zVTyDsTS.js"></script>
+  <link rel="stylesheet" crossorigin href="/assets/index-D2YSL8Gw.css">
 </head>
 <body>
 
@@ -48,10 +48,6 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
         Policy & Fleet Sizing
       </button>
-      <button class="nav-tab-btn" data-view="gis-data-hub" id="tab-gishub">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        GIS Layers & Export
-      </button>
     </nav>
 
     <!-- Right Actions -->
@@ -60,10 +56,6 @@
         <span class="live-dot"></span>
         Live map
       </div>
-      <button class="btn-primary" id="btn-quick-feeder">
-        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        Try a feeder
-      </button>
     </div>
   </header>
 
@@ -313,7 +305,7 @@
                   </div>
                   <div>
                     <div class="layer-name">PMC Pune Core (41 Wards)</div>
-                    <div class="layer-subtext">South/Central Pune population polygons</div>
+                    <div class="layer-subtext">Click any ward to highlight &amp; open table</div>
                   </div>
                 </div>
                 <div class="switch">
@@ -329,7 +321,7 @@
                   </div>
                   <div>
                     <div class="layer-name">PCMC Twin City (32 Wards)</div>
-                    <div class="layer-subtext">North Pimpri-Chinchwad municipal bounds</div>
+                    <div class="layer-subtext">Click any ward to highlight &amp; open table</div>
                   </div>
                 </div>
                 <div class="switch">
@@ -375,113 +367,69 @@
             <div class="legend-item"><span class="legend-dot" style="background:#059669;"></span> PCMC Twin City Wards (32)</div>
             <div class="legend-item"><span class="legend-dot" style="background:#f43f5e;"></span> High Delay Transit Desert</div>
           </div>
-        </div>
 
-        <!-- RIGHT PANEL: INSPECTOR & FEEDER SIMULATOR -->
-        <aside class="glass-panel gis-inspector-pane">
-          <div class="panel-header">
-            <h2 class="panel-title">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent-cyan)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-              Selection details
-            </h2>
-            <span class="inspector-tag tag-cyan" id="inspector-status">
-              Click map
-            </span>
-          </div>
-
-          <div class="panel-body">
-            
-            <!-- Dynamic Inspector Card -->
-            <div class="inspector-card" id="inspector-card">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
-                <span class="inspector-tag tag-purple" id="insp-type">Metro interchange</span>
-                <span style="font-size:0.72rem; color:var(--text-muted); font-family:var(--font-mono);" id="insp-coords">18.5268, 73.8584</span>
-              </div>
-              <h3 class="insp-heading" id="insp-name">Civil Court Interchange</h3>
-              <p style="font-size:0.77rem; color:var(--text-body); line-height:1.45;" id="insp-desc">
-                Central multi-line hub connecting Purple Line, Aqua Line, and upcoming Line 3.
-              </p>
-
-              <div style="border-top:1px solid var(--border-subtle); padding-top:0.75rem; display:flex; flex-direction:column; gap:0.5rem;">
-                <div class="detail-row">
-                  <span class="detail-label">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-                    Daily transfers
-                  </span>
-                  <span class="detail-value" id="insp-metric-1">54,000 riders</span>
+          <!-- WARD ATTRIBUTE TABLE POPUP MODAL / DRAWER -->
+          <div id="ward-table-modal" class="ward-table-drawer" style="display:none;" role="region" aria-label="Overview of the Ward">
+            <!-- Header bar -->
+            <div class="ward-drawer-header">
+              <div class="ward-drawer-title-group">
+                <div class="ward-badges-row">
+                  <span class="ward-corp-pill pmc" id="ward-modal-corp">PMC</span>
+                  <span class="ward-number-pill" id="ward-modal-no">Ward #5</span>
+                  <span class="ward-density-pill" id="ward-modal-density-badge">High Density</span>
                 </div>
-                <div class="detail-row">
-                  <span class="detail-label">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                    Transfer friction
-                  </span>
-                  <span class="detail-value" style="color:var(--accent-emerald);" id="insp-metric-2">28 / 100 (Low)</span>
-                </div>
-                <div class="detail-row">
-                  <span class="detail-label">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
-                    Walk to bus
-                  </span>
-                  <span class="detail-value" id="insp-metric-3">140 meters</span>
-                </div>
-                <div class="detail-row">
-                  <span class="detail-label">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="3" width="16" height="16" rx="2"/></svg>
-                    Modes available
-                  </span>
-                  <span class="detail-value" id="insp-metric-4">Metro L1, L2, L3, Bus</span>
-                </div>
+                <h3 class="ward-drawer-title" id="ward-modal-name">Overview of the Ward</h3>
+                <span class="ward-drawer-subtitle" id="ward-modal-subtitle">Pune Municipal Corporation · Demographic & Spatial Overview</span>
               </div>
-            </div>
-
-            <!-- Feeder Network Simulation Controls -->
-            <div class="feeder-sim-box" id="feeder-sim-panel">
-              <div class="feeder-sim-header">
-                <h4 class="feeder-sim-title">
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="var(--accent-teal)" stroke-width="2.2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-                  Try a feeder route
-                </h4>
-                <p class="feeder-sim-desc">
-                  A feeder is a short electric bus loop that links a crowded neighbourhood to the nearest metro — so people don’t need long auto rides for the last mile.
-                </p>
-              </div>
-
-              <div class="feeder-step">
-                <span class="feeder-step-label">1 · Pick a neighbourhood link</span>
-                <select class="sim-select" id="sim-feeder-select">
-                  <option value="F1">Dhanori → Yerawada Metro</option>
-                  <option value="F2">Ambegaon → Swargate Hub</option>
-                  <option value="F3">Bavdhan → Vanaz Metro</option>
-                  <option value="F4">Wagholi → Ramwadi Metro</option>
-                  <option value="F5">Katraj → Swargate</option>
-                </select>
-              </div>
-
-              <div class="feeder-step">
-                <span class="feeder-step-label">2 · Estimated impact</span>
-                <div class="sim-impact-grid">
-                  <div class="sim-impact-card">
-                    <div class="sim-impact-label">People newly within reach</div>
-                    <div class="sim-impact-value gain" id="sim-pop-gain">+68,000</div>
-                  </div>
-                  <div class="sim-impact-card">
-                    <div class="sim-impact-label">Waiting time saved</div>
-                    <div class="sim-impact-value time" id="sim-time-gain">−18 mins</div>
-                  </div>
-                </div>
-              </div>
-
-              <div class="feeder-step">
-                <span class="feeder-step-label">3 · See it on the map</span>
-                <button class="btn-primary" id="btn-apply-sim" style="justify-content:center; width:100%; padding:0.55rem;">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
-                  Show this route
+              <div class="ward-drawer-actions">
+                <button class="ward-action-btn" id="btn-ward-zoom" title="Zoom to fit this ward on map">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+                  <span>Zoom</span>
+                </button>
+                <button class="ward-action-btn icon-only" id="btn-ward-minimize" title="Minimize or Expand Table">
+                  <svg id="ward-min-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+                </button>
+                <button class="ward-action-btn icon-only close" id="btn-ward-close" title="Close table and clear highlight">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
               </div>
             </div>
 
+            <!-- Drawer Body (Collapsible) -->
+            <div class="ward-drawer-body" id="ward-drawer-body">
+              <!-- KPI Summary Cards -->
+              <div class="ward-kpis-grid" id="ward-kpis-grid">
+                <!-- Injected dynamically -->
+              </div>
+
+              <!-- Main Attribute Data Table -->
+              <div class="ward-table-scroll-wrapper">
+                <table class="ward-attr-table" id="ward-attr-table">
+                  <thead>
+                    <tr>
+                      <th style="width: 35%;">Ward Parameter</th>
+                      <th style="width: 65%;">Value / Details</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ward-attr-tbody">
+                    <!-- Rows injected dynamically -->
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Footer Actions -->
+              <div class="ward-drawer-footer">
+                <span class="ward-source-note">Source: IMP Group 38 GIS Roster (ArcGIS Pro 2026 Model)</span>
+                <div class="ward-footer-btns">
+                  <button class="btn-secondary" id="btn-ward-export-geojson" style="font-size:0.74rem; padding:0.35rem 0.75rem;">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Download Ward GeoJSON
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-        </aside>
+        </div>
 
       </div>
     </section>

@@ -35,6 +35,7 @@ const state = {
     pcmcWards: null,
     selectedWardLayer: null,
     selectedWardGeojson: null,
+    selectedWardData: null,
     activeFeederHighlight: null,
     customUploaded: null
   },
@@ -61,6 +62,7 @@ const state = {
 document.addEventListener('DOMContentLoaded', () => {
   initNavigation();
   initGISMap();
+  initWardModalEvents();
   initInspectorAndSimulator();
   initHubDelaysView();
   initSurveyView();
@@ -105,17 +107,6 @@ function initNavigation() {
       }
     });
   });
-
-  // Quick feeder button — jump to map and highlight the try-a-feeder route
-  const quickFeederBtn = document.getElementById('btn-quick-feeder');
-  if (quickFeederBtn) {
-    quickFeederBtn.addEventListener('click', () => {
-      document.getElementById('tab-gis').click();
-      const simSelect = document.getElementById('sim-feeder-select');
-      const feederId = (simSelect && simSelect.value) ? simSelect.value : 'F1';
-      handleFeederSimulationChange(feederId, true);
-    });
-  }
 }
 
 /* =========================================================================
@@ -587,9 +578,366 @@ function renderProposedFeeders() {
     `);
 
     poly.on('click', () => {
-      document.getElementById('sim-feeder-select').value = feeder.id;
-      handleFeederSimulationChange(feeder.id, true);
+      updateInspector({
+        type: 'Proposed feeder',
+        tagClass: 'tag-green',
+        name: feeder.name,
+        coords: `Line ${feeder.id} · ${feeder.lengthKm} km`,
+        desc: feeder.description,
+        metric1Val: `+${feeder.popCoverageGain.toLocaleString()} citizens`,
+        metric2Val: `-${feeder.avgWaitReductionMins} mins wait`,
+        metric3Val: `${feeder.fleetAllocated || feeder.fleetRecommended} buses`,
+        metric4Val: feeder.connectsToMetro || feeder.metroStation
+      });
     });
+  });
+}
+
+// Spatial Proximity and Distance Helpers for Ward Demographic Analytics
+function getHaversineDistKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function findNearestMetroStation(lat, lon) {
+  let nearest = null;
+  let minD = Infinity;
+  const lines = [
+    { key: 'purple', name: 'Purple Line (L1)', color: '#8b5cf6', stations: PUNE_METRO_LINES.purple.stations },
+    { key: 'aqua', name: 'Aqua Line (L2)', color: '#06b6d4', stations: PUNE_METRO_LINES.aqua.stations },
+    { key: 'line3', name: 'Line 3 (IT Metro)', color: '#f59e0b', stations: PUNE_METRO_LINES.line3.stations }
+  ];
+
+  lines.forEach(l => {
+    l.stations.forEach(stn => {
+      const d = getHaversineDistKm(lat, lon, stn.coords[0], stn.coords[1]);
+      if (d < minD) {
+        minD = d;
+        nearest = {
+          name: stn.name,
+          line: l.name,
+          lineColor: l.color,
+          distKm: d.toFixed(2),
+          coords: stn.coords
+        };
+      }
+    });
+  });
+  return nearest;
+}
+
+function findNearestFeeder(lat, lon) {
+  let nearest = null;
+  let minD = Infinity;
+  PROPOSED_FEEDER_ROUTES.forEach(f => {
+    if (f.pathCoordinates && f.pathCoordinates.length > 0) {
+      const startCoord = f.pathCoordinates[0];
+      const d = getHaversineDistKm(lat, lon, startCoord[0], startCoord[1]);
+      if (d < minD) {
+        minD = d;
+        nearest = f;
+      }
+    }
+  });
+  return nearest;
+}
+
+function findTransitGapMatch(lat, lon) {
+  let matchedGap = null;
+  let minD = Infinity;
+  TRANSIT_DESERT_ZONES.forEach(gap => {
+    if (gap.polygon && gap.polygon.length > 0) {
+      let sumLat = 0, sumLon = 0;
+      gap.polygon.forEach(pt => { sumLat += pt[0]; sumLon += pt[1]; });
+      const cLat = sumLat / gap.polygon.length;
+      const cLon = sumLon / gap.polygon.length;
+      const d = getHaversineDistKm(lat, lon, cLat, cLon);
+      if (d < 3.5 && d < minD) {
+        minD = d;
+        matchedGap = gap;
+      }
+    }
+  });
+  return matchedGap;
+}
+
+// Clear currently active highlighted ward polygon
+function clearWardHighlight(closeDrawer = true) {
+  if (state.selectedWardLayer) {
+    if (state.selectedWardGeojson) {
+      state.selectedWardGeojson.resetStyle(state.selectedWardLayer);
+    }
+    state.selectedWardLayer = null;
+    state.selectedWardGeojson = null;
+    state.selectedWardData = null;
+  }
+  if (closeDrawer) {
+    hideWardTableDrawer();
+  }
+}
+
+// Highlight the clicked ward polygon and pop up its attribute table
+function selectAndHighlightWard(layer, feature, isPMC, geojsonLayer) {
+  // 1. Reset previously highlighted ward polygon
+  clearWardHighlight(false);
+
+  // 2. Register current selection
+  state.selectedWardLayer = layer;
+  state.selectedWardGeojson = geojsonLayer;
+
+  // 3. Highlight the clicked ward along its exact boundary perimeter
+  layer.setStyle({
+    color: isPMC ? '#1e40af' : '#065f46',
+    weight: 3.5,
+    opacity: 1,
+    fillColor: isPMC ? '#3b82f6' : '#10b981',
+    fillOpacity: 0.45
+  });
+  layer.bringToFront();
+
+  // 4. Calculate detailed spatial & demographic metrics
+  const p = feature.properties || {};
+  const corpName = isPMC ? 'Pune Municipal Corporation' : 'Pimpri Chinchwad Municipal Corporation';
+  const corpShort = isPMC ? 'PMC' : 'PCMC';
+  const wardNo = isPMC 
+    ? (p.Polygons_WardNumber || p.PMC_wards_2025_xlsx___PMC_41_Wards_2025_Population_csv_Ward_No || '')
+    : (p.Pimpri_Chinchwad_sourcewa_1 || p.PCMC_ward_wisepop_data_v3_csv_Ward_No || '');
+  
+  const wardName = isPMC 
+    ? (p.PMC_wards_2025_xlsx___PMC_41_Wards_2025_Population_csv_Ward_Name || `Ward ${wardNo}`)
+    : (p.PCMC_ward_wisepop_data_v3_csv_PCMC_Ward___Area_Name || p.Pimpri_Chinchwad_ward_lgd_n || `Ward ${wardNo}`);
+  
+  const pop2026 = Math.round(isPMC ? (p.Polygons_Pop_2026 || 0) : (p.Pimpri_Chinchwad_Pop_2026 || 0));
+  const pop2025 = Math.round(isPMC ? (p.PMC_wards_2025_xlsx___PMC_41_Wards_2025_Population_csv_Population || 0) : (p.PCMC_ward_wisepop_data_v3_csv_Population || 0));
+  const rawArea = isPMC ? p.Shape_Area : (p.Pimpri_Chinchwad_st_area_sh || p.Shape_Area);
+  const areaKm2 = rawArea ? (rawArea / 1000000).toFixed(2) : 'N/A';
+  const numArea = parseFloat(areaKm2);
+  const density = (numArea > 0 && pop2026 > 0) ? Math.round(pop2026 / numArea) : (numArea > 0 && pop2025 > 0 ? Math.round(pop2025 / numArea) : null);
+  const growthRate = (pop2025 > 0 && pop2026 > 0) ? (((pop2026 - pop2025) / pop2025) * 100).toFixed(1) : null;
+  const vuln = p.Pimpri_Chinchwad_AMJ_Vulner || (isPMC ? 'Urban Heat Island Corridor' : 'Medium');
+
+  const bounds = layer.getBounds();
+  const center = bounds.getCenter();
+  const nearestMetro = findNearestMetroStation(center.lat, center.lng);
+  const nearestFeeder = findNearestFeeder(center.lat, center.lng);
+  const matchedGap = findTransitGapMatch(center.lat, center.lng);
+
+  const wardData = {
+    feature,
+    layer,
+    isPMC,
+    corpName,
+    corpShort,
+    wardNo,
+    wardName,
+    pop2026,
+    pop2025,
+    growthRate,
+    areaKm2,
+    rawArea: Math.round(rawArea || 0),
+    density,
+    vuln,
+    center,
+    nearestMetro,
+    nearestFeeder,
+    matchedGap
+  };
+
+  state.selectedWardData = wardData;
+
+  // 5. Open the floating Overview of the Ward table drawer
+  showWardTableDrawer(wardData);
+}
+
+// Populate and display the Ward Attribute Table Drawer
+function showWardTableDrawer(data) {
+  if (!data) return;
+  const drawer = document.getElementById('ward-table-modal');
+  if (!drawer) return;
+
+  drawer.style.display = 'flex';
+  drawer.classList.remove('minimized');
+  const body = document.getElementById('ward-drawer-body');
+  if (body) body.style.display = 'flex';
+
+  // Corporation Pill
+  const corpPill = document.getElementById('ward-modal-corp');
+  if (corpPill) {
+    corpPill.textContent = data.corpShort;
+    corpPill.className = `ward-corp-pill ${data.corpShort.toLowerCase()}`;
+  }
+
+  // Ward No Pill
+  const noPill = document.getElementById('ward-modal-no');
+  if (noPill) {
+    noPill.textContent = data.wardNo ? `Ward #${data.wardNo}` : 'Ward Area';
+  }
+
+  // Density Pill
+  const densityPill = document.getElementById('ward-modal-density-badge');
+  if (densityPill) {
+    if (data.density && data.density >= 22000) {
+      densityPill.textContent = '🔥 High Density Cluster';
+      densityPill.className = 'ward-density-pill high';
+    } else if (data.density && data.density >= 14000) {
+      densityPill.textContent = '⚡ Moderate Density';
+      densityPill.className = 'ward-density-pill moderate';
+    } else {
+      densityPill.textContent = '🌱 Dispersed / Suburban';
+      densityPill.className = 'ward-density-pill medium';
+    }
+  }
+
+  // Ward Name & Subtitle
+  const nameEl = document.getElementById('ward-modal-name');
+  if (nameEl) nameEl.textContent = `Overview of ${data.wardName}`;
+
+  const subEl = document.getElementById('ward-modal-subtitle');
+  if (subEl) {
+    subEl.textContent = `${data.corpName} · Ward #${data.wardNo || 'N/A'}`;
+  }
+
+  // Inject KPI Cards
+  const kpisGrid = document.getElementById('ward-kpis-grid');
+  if (kpisGrid) {
+    kpisGrid.innerHTML = `
+      <div class="ward-kpi-card">
+        <span class="kpi-label">2026 Projected Pop</span>
+        <span class="kpi-val">${data.pop2026 > 0 ? data.pop2026.toLocaleString() : 'N/A'}</span>
+        <span class="kpi-tag positive">
+          ${data.growthRate ? `+${data.growthRate}% vs 2025` : 'ArcGIS GIS Proj.'}
+        </span>
+      </div>
+      <div class="ward-kpi-card">
+        <span class="kpi-label">2025 Baseline Pop</span>
+        <span class="kpi-val">${data.pop2025 > 0 ? data.pop2025.toLocaleString() : 'N/A'}</span>
+        <span class="kpi-tag neutral">Census baseline</span>
+      </div>
+      <div class="ward-kpi-card">
+        <span class="kpi-label">Gross Land Area</span>
+        <span class="kpi-val">${data.areaKm2} km²</span>
+        <span class="kpi-tag neutral">${data.rawArea ? data.rawArea.toLocaleString() + ' m²' : 'Polygon'}</span>
+      </div>
+      <div class="ward-kpi-card">
+        <span class="kpi-label">Population Density</span>
+        <span class="kpi-val">${data.density ? data.density.toLocaleString() : 'N/A'}</span>
+        <span class="kpi-tag neutral">persons / km²</span>
+      </div>
+    `;
+  }
+
+  // Inject Overview Attribute Table
+  const tbody = document.getElementById('ward-attr-tbody');
+  if (tbody) {
+    tbody.innerHTML = `
+      <tr>
+        <td class="attr-name">Ward Name &amp; Locality</td>
+        <td class="attr-val highlight">${data.wardName}</td>
+      </tr>
+      <tr>
+        <td class="attr-name">Official Ward Identifier</td>
+        <td class="attr-val">Ward #${data.wardNo || 'N/A'}</td>
+      </tr>
+      <tr>
+        <td class="attr-name">Municipal Corporation</td>
+        <td class="attr-val">${data.corpName} (${data.corpShort})</td>
+      </tr>
+      <tr>
+        <td class="attr-name">2026 Projected Population</td>
+        <td class="attr-val highlight">${data.pop2026 > 0 ? data.pop2026.toLocaleString() + ' residents' : 'Calculated by Model'}</td>
+      </tr>
+      <tr>
+        <td class="attr-name">2025 Baseline Population</td>
+        <td class="attr-val">${data.pop2025 > 0 ? data.pop2025.toLocaleString() + ' residents' : 'Baseline unrecorded'}</td>
+      </tr>
+      <tr>
+        <td class="attr-name">Projected Population Growth</td>
+        <td class="attr-val">${data.growthRate ? '+' + data.growthRate + '% annual growth' : 'Census baseline register'}</td>
+      </tr>
+      <tr>
+        <td class="attr-name">Gross Surface Area</td>
+        <td class="attr-val">${data.areaKm2} km² (${data.rawArea.toLocaleString()} m²)</td>
+      </tr>
+      <tr>
+        <td class="attr-name">Urban Population Density</td>
+        <td class="attr-val">${data.density ? data.density.toLocaleString() + ' persons / km²' : 'N/A'}</td>
+      </tr>
+      <tr>
+        <td class="attr-name">Summer Heat Vulnerability</td>
+        <td class="attr-val">${data.vuln}</td>
+      </tr>
+      <tr>
+        <td class="attr-name">Nearest Rapid Transit Station</td>
+        <td class="attr-val">${data.nearestMetro ? data.nearestMetro.name + ' (' + data.nearestMetro.line + ') &mdash; ~' + data.nearestMetro.distKm + ' km' : 'None within 5 km'}</td>
+      </tr>
+      <tr>
+        <td class="attr-name">Spatial Data Boundary</td>
+        <td class="attr-val">IMP Group 38 ArcGIS Pro Spatial Polygon Model</td>
+      </tr>
+    `;
+  }
+}
+
+function hideWardTableDrawer() {
+  const drawer = document.getElementById('ward-table-modal');
+  if (drawer) {
+    drawer.style.display = 'none';
+    drawer.classList.remove('minimized');
+  }
+}
+
+// Bind event listeners for Ward Attribute Table Drawer
+function initWardModalEvents() {
+  // Zoom Button
+  document.getElementById('btn-ward-zoom')?.addEventListener('click', () => {
+    if (state.selectedWardData && state.selectedWardData.layer) {
+      state.map.fitBounds(state.selectedWardData.layer.getBounds(), {
+        padding: [60, 60],
+        maxZoom: 15,
+        animate: true
+      });
+    }
+  });
+
+  // Minimize / Expand Toggle
+  document.getElementById('btn-ward-minimize')?.addEventListener('click', () => {
+    const drawer = document.getElementById('ward-table-modal');
+    if (drawer) {
+      drawer.classList.toggle('minimized');
+      const isMin = drawer.classList.contains('minimized');
+      const minIcon = document.getElementById('ward-min-icon');
+      if (minIcon) {
+        minIcon.innerHTML = isMin 
+          ? '<polyline points="18 15 12 9 6 15"/>'
+          : '<polyline points="6 9 12 15 18 9"/>';
+      }
+    }
+  });
+
+  // Close Button
+  document.getElementById('btn-ward-close')?.addEventListener('click', () => {
+    clearWardHighlight(true);
+  });
+
+  // Export GeoJSON Button
+  document.getElementById('btn-ward-export-geojson')?.addEventListener('click', () => {
+    if (state.selectedWardData && state.selectedWardData.feature) {
+      const blob = new Blob([JSON.stringify(state.selectedWardData.feature, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `pune_${state.selectedWardData.corpShort.toLowerCase()}_ward_${state.selectedWardData.wardNo || 'boundary'}.geojson`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
   });
 }
 
@@ -633,16 +981,13 @@ function renderPuneFullWards() {
           : (p.PCMC_ward_wisepop_data_v3_csv_PCMC_Ward___Area_Name || p.Pimpri_Chinchwad_ward_lgd_n || `Ward ${wardNo}`);
         
         const pop2026 = Math.round(isPMC ? (p.Polygons_Pop_2026 || 0) : (p.Pimpri_Chinchwad_Pop_2026 || 0));
-        const pop2025 = isPMC ? (p.PMC_wards_2025_xlsx___PMC_41_Wards_2025_Population_csv_Population || 0) : (p.PCMC_ward_wisepop_data_v3_csv_Population || 0);
-        const rawArea = isPMC ? p.Shape_Area : (p.Pimpri_Chinchwad_st_area_sh || p.Shape_Area);
-        const areaKm2 = rawArea ? (rawArea / 1000000).toFixed(2) : 'N/A';
-        const vuln = p.Pimpri_Chinchwad_AMJ_Vulner || 'Standard';
 
         // Tooltip on Hover
         layer.bindTooltip(`
           <div style="font-family:sans-serif; font-size:11px; padding:2px 4px;">
             <b style="color:${isPMC ? '#1d4ed8' : '#047857'};">[${isPMC ? 'PMC' : 'PCMC'}] Ward ${wardNo}:</b> ${wardName}<br/>
-            <span style="color:#64748b;">Pop (2026): <b>${pop2026 > 0 ? pop2026.toLocaleString() : 'N/A'}</b></span>
+            <span style="color:#64748b;">Pop (2026): <b>${pop2026 > 0 ? pop2026.toLocaleString() : 'N/A'}</b></span><br/>
+            <span style="color:#0891b2; font-size:10px; font-weight:600;">Click to highlight ward &amp; open table</span>
           </div>
         `, { sticky: true, opacity: 0.95, pane: 'stationsPane' });
 
@@ -662,41 +1007,12 @@ function renderPuneFullWards() {
           }
         });
 
-        // Click to highlight exact ward polygon & update Inspector
+        // Click to highlight exact ward polygon & open attribute table drawer
         layer.on('click', (e) => {
           if (e && e.originalEvent) {
             L.DomEvent.stopPropagation(e);
           }
-
-          // Reset previous selected ward if any
-          if (state.selectedWardLayer && state.selectedWardGeojson) {
-            state.selectedWardGeojson.resetStyle(state.selectedWardLayer);
-          }
-
-          // Highlight the clicked ward along its exact boundary perimeter
-          state.selectedWardLayer = layer;
-          state.selectedWardGeojson = geojsonLayer;
-
-          layer.setStyle({
-            color: isPMC ? '#1e40af' : '#065f46',
-            weight: 3.5,
-            opacity: 1,
-            fillColor: isPMC ? '#3b82f6' : '#10b981',
-            fillOpacity: 0.45
-          });
-          layer.bringToFront();
-
-          updateInspector({
-            type: isPMC ? 'PMC WARD' : 'PCMC WARD',
-            tagClass: isPMC ? 'tag-blue' : 'tag-green',
-            name: `Ward ${wardNo}: ${wardName}`,
-            coords: corpName,
-            desc: `Municipal ward boundary polygon from the ArcGIS project. Covers approximately ${areaKm2} km² with an estimated 2026 population of ${pop2026 > 0 ? pop2026.toLocaleString() : 'N/A'}.`,
-            metric1Val: pop2026 > 0 ? `${pop2026.toLocaleString()} citizens` : 'N/A',
-            metric2Val: pop2025 > 0 ? `${pop2025.toLocaleString()} (2025)` : 'N/A',
-            metric3Val: `${areaKm2} km²`,
-            metric4Val: isPMC ? 'PMC Core' : `Vuln: ${vuln}`
-          });
+          selectAndHighlightWard(layer, feature, isPMC, geojsonLayer);
         });
       }
     }).addTo(targetLayerGroup);
@@ -704,11 +1020,7 @@ function renderPuneFullWards() {
 
   // Clear ward selection when clicking anywhere else on the map
   state.map.on('click', () => {
-    if (state.selectedWardLayer && state.selectedWardGeojson) {
-      state.selectedWardGeojson.resetStyle(state.selectedWardLayer);
-      state.selectedWardLayer = null;
-      state.selectedWardGeojson = null;
-    }
+    clearWardHighlight(true);
   });
 
   setupWardLayer(pmcFeatures, true, state.layers.pmcWards);
