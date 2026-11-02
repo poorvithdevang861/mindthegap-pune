@@ -785,29 +785,14 @@ function clearWardHighlight(closeDrawer = true) {
   if (closeDrawer) {
     state.isWardPinned = false;
     hideWardTableDrawer();
+    if (state.map) {
+      state.map.closePopup();
+    }
   }
 }
 
-// Highlight the clicked ward polygon and pop up its attribute table
-function selectAndHighlightWard(layer, feature, isPMC, geojsonLayer) {
-  // 1. Reset previously highlighted ward polygon
-  clearWardHighlight(false);
-
-  // 2. Register current selection
-  state.selectedWardLayer = layer;
-  state.selectedWardGeojson = geojsonLayer;
-
-  // 3. Highlight the clicked ward along its exact boundary perimeter
-  layer.setStyle({
-    color: isPMC ? '#1e40af' : '#065f46',
-    weight: 3.5,
-    opacity: 1,
-    fillColor: isPMC ? '#3b82f6' : '#10b981',
-    fillOpacity: 0.45
-  });
-  layer.bringToFront();
-
-  // 4. Calculate detailed spatial & demographic metrics
+// Compute all demographic, geographic, and accessibility metrics for a ward
+function getWardMetrics(feature, layer, isPMC) {
   const p = feature.properties || {};
   const corpName = isPMC ? 'Pune Municipal Corporation' : 'Pimpri Chinchwad Municipal Corporation';
   const corpShort = isPMC ? 'PMC' : 'PCMC';
@@ -828,14 +813,18 @@ function selectAndHighlightWard(layer, feature, isPMC, geojsonLayer) {
   const growthRate = (pop2025 > 0 && pop2026 > 0) ? (((pop2026 - pop2025) / pop2025) * 100).toFixed(1) : null;
   const vuln = p.Pimpri_Chinchwad_AMJ_Vulner || (isPMC ? 'Urban Heat Island Corridor' : 'Medium');
 
-  const bounds = layer.getBounds();
-  const center = bounds.getCenter();
-  const nearestMetro = findNearestMetroStation(center.lat, center.lng);
-  const nearestBusStop = findNearestBusStop(center.lat, center.lng);
-  const nearestFeeder = findNearestFeeder(center.lat, center.lng);
-  const matchedGap = findTransitGapMatch(center.lat, center.lng);
+  let center = null;
+  if (layer && typeof layer.getBounds === 'function') {
+    const bounds = layer.getBounds();
+    center = bounds.getCenter();
+  }
 
-  const wardData = {
+  const nearestMetro = center ? findNearestMetroStation(center.lat, center.lng) : null;
+  const nearestBusStop = center ? findNearestBusStop(center.lat, center.lng) : null;
+  const nearestFeeder = center ? findNearestFeeder(center.lat, center.lng) : null;
+  const matchedGap = center ? findTransitGapMatch(center.lat, center.lng) : null;
+
+  return {
     feature,
     layer,
     isPMC,
@@ -856,23 +845,138 @@ function selectAndHighlightWard(layer, feature, isPMC, geojsonLayer) {
     nearestFeeder,
     matchedGap
   };
-
-  state.selectedWardData = wardData;
-
-  // 5. Open the floating Overview of the Ward table drawer
-  showWardTableDrawer(wardData);
 }
 
-// Populate and display the Ward Attribute Table Drawer
-function showWardTableDrawer(data) {
-  if (!data) return;
-  const drawer = document.getElementById('ward-table-modal');
-  if (!drawer) return;
+// Generate the rich interactive pop-up table HTML for a clicked ward
+function buildWardPopupHtml(data) {
+  if (!data) return '';
 
-  drawer.style.display = 'flex';
-  drawer.classList.remove('minimized');
-  const body = document.getElementById('ward-drawer-body');
-  if (body) body.style.display = 'flex';
+  let densityClass = 'moderate';
+  let densityLabel = '⚡ Moderate Density';
+  if (data.density && data.density >= 22000) {
+    densityClass = 'high';
+    densityLabel = '🔥 High Density';
+  } else if (!data.density || data.density < 14000) {
+    densityClass = 'medium';
+    densityLabel = '🌱 Dispersed';
+  }
+
+  const pop2026Formatted = data.pop2026 > 0 ? `${data.pop2026.toLocaleString()} residents` : 'Calculated by Model';
+  const pop2025Formatted = data.pop2025 > 0 ? `${data.pop2025.toLocaleString()}` : 'N/A';
+  const growthBadge = data.growthRate ? `<span class="growth-badge">+${data.growthRate}%</span>` : '';
+  const densityFormatted = data.density ? `${data.density.toLocaleString()} / km²` : 'N/A';
+  const metroText = data.nearestMetro 
+    ? `${data.nearestMetro.name} (${data.nearestMetro.line}) · ${data.nearestMetro.distKm} km`
+    : 'None within 5 km';
+  const busText = data.nearestBusStop
+    ? `${data.nearestBusStop.name} · ${data.nearestBusStop.distM < 1000 ? data.nearestBusStop.distM + ' m' : data.nearestBusStop.distKm + ' km'}`
+    : 'None nearby';
+
+  return `
+    <div class="ward-popup-card">
+      <div class="ward-popup-header">
+        <div class="ward-popup-badges">
+          <span class="ward-corp-pill ${data.corpShort.toLowerCase()}">${data.corpShort}</span>
+          <span class="ward-number-pill">${data.wardNo ? 'Ward #' + data.wardNo : 'Ward Area'}</span>
+          <span class="ward-density-pill ${densityClass}">${densityLabel}</span>
+        </div>
+        <h3 class="ward-popup-title">${data.wardName}</h3>
+        <div class="ward-popup-subtitle">${data.corpName}</div>
+      </div>
+
+      <div class="ward-popup-table-container">
+        <table class="ward-popup-table">
+          <tbody>
+            <tr>
+              <td class="col-label">👥 Projected Pop (2026)</td>
+              <td class="col-value highlight">${pop2026Formatted}</td>
+            </tr>
+            <tr>
+              <td class="col-label">📊 Baseline Pop (2025)</td>
+              <td class="col-value">${pop2025Formatted} ${growthBadge}</td>
+            </tr>
+            <tr>
+              <td class="col-label">📐 Gross Surface Area</td>
+              <td class="col-value">${data.areaKm2} km²</td>
+            </tr>
+            <tr>
+              <td class="col-label">🏢 Population Density</td>
+              <td class="col-value">${densityFormatted}</td>
+            </tr>
+            <tr>
+              <td class="col-label">🚇 Nearest Metro</td>
+              <td class="col-value metro" title="${metroText}">${metroText}</td>
+            </tr>
+            <tr>
+              <td class="col-label">🚌 Nearest Bus Stop</td>
+              <td class="col-value bus" title="${busText}">${busText}</td>
+            </tr>
+            <tr>
+              <td class="col-label">🌡️ Heat Vulnerability</td>
+              <td class="col-value">${data.vuln}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="ward-popup-footer">
+        <button type="button" class="ward-popup-btn btn-zoom" data-action="zoom" title="Zoom to fit this ward on map">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          Zoom to Ward
+        </button>
+        <button type="button" class="ward-popup-btn btn-drawer" data-action="drawer" title="Open detailed overview drawer">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/>
+          </svg>
+          Detailed Drawer
+        </button>
+      </div>
+    </div>
+  `;
+}
+
+// Highlight the clicked ward polygon and pop up its attribute table
+function selectAndHighlightWard(layer, feature, isPMC, geojsonLayer, openDrawer = false) {
+  // 1. Reset previously highlighted ward polygon
+  clearWardHighlight(false);
+
+  // 2. Register current selection
+  state.selectedWardLayer = layer;
+  state.selectedWardGeojson = geojsonLayer;
+
+  // 3. Highlight the clicked ward along its exact boundary perimeter
+  layer.setStyle({
+    color: isPMC ? '#1e40af' : '#065f46',
+    weight: 3.5,
+    opacity: 1,
+    fillColor: isPMC ? '#3b82f6' : '#10b981',
+    fillOpacity: 0.45
+  });
+  layer.bringToFront();
+
+  // 4. Calculate detailed spatial & demographic metrics
+  const wardData = getWardMetrics(feature, layer, isPMC);
+  state.selectedWardData = wardData;
+
+  // 5. Open on-map pop-up table if not already open
+  if (!layer.isPopupOpen()) {
+    layer.openPopup();
+  }
+
+  // 6. Update or show drawer
+  const drawer = document.getElementById('ward-table-modal');
+  if (openDrawer || (drawer && drawer.style.display !== 'none')) {
+    showWardTableDrawer(wardData);
+  } else {
+    populateWardDrawer(wardData);
+  }
+}
+
+// Populate the Ward Attribute Table Drawer DOM
+function populateWardDrawer(data) {
+  if (!data) return;
 
   // Corporation Pill
   const corpPill = document.getElementById('ward-modal-corp');
@@ -996,6 +1100,20 @@ function showWardTableDrawer(data) {
   }
 }
 
+// Populate and display the Ward Attribute Table Drawer
+function showWardTableDrawer(data) {
+  if (!data) return;
+  const drawer = document.getElementById('ward-table-modal');
+  if (!drawer) return;
+
+  drawer.style.display = 'flex';
+  drawer.classList.remove('minimized');
+  const body = document.getElementById('ward-drawer-body');
+  if (body) body.style.display = 'flex';
+
+  populateWardDrawer(data);
+}
+
 function hideWardTableDrawer() {
   const drawer = document.getElementById('ward-table-modal');
   if (drawer) {
@@ -1102,9 +1220,21 @@ function renderPuneFullWards() {
           <div style="font-family:sans-serif; font-size:11px; padding:2px 4px;">
             <b style="color:${isPMC ? '#1d4ed8' : '#047857'};">[${isPMC ? 'PMC' : 'PCMC'}] Ward ${wardNo}:</b> ${wardName}<br/>
             <span style="color:#64748b;">Pop (2026): <b>${pop2026 > 0 ? pop2026.toLocaleString() : 'N/A'}</b></span><br/>
-            <span style="color:#0891b2; font-size:10px; font-weight:600;">Click to view full ward table</span>
+            <span style="color:#0891b2; font-size:10px; font-weight:600;">👆 Click to view pop-up table</span>
           </div>
         `, { sticky: true, opacity: 0.95, pane: 'stationsPane' });
+
+        // Bind interactive Pop-up Table
+        layer.bindPopup(() => {
+          const wardData = getWardMetrics(feature, layer, isPMC);
+          return buildWardPopupHtml(wardData);
+        }, {
+          maxWidth: 360,
+          minWidth: 290,
+          className: 'ward-interactive-popup',
+          autoPan: true,
+          autoPanPadding: [35, 35]
+        });
 
         // Hover style transitions (only when not actively selected)
         layer.on('mouseover', () => {
@@ -1122,7 +1252,57 @@ function renderPuneFullWards() {
           }
         });
 
-        // Click to highlight exact ward polygon & open attribute table drawer
+        // On popup open: highlight polygon, populate drawer, bind button clicks
+        layer.on('popupopen', (e) => {
+          clearWardHighlight(false);
+
+          state.selectedWardLayer = layer;
+          state.selectedWardGeojson = geojsonLayer;
+          const wardData = getWardMetrics(feature, layer, isPMC);
+          state.selectedWardData = wardData;
+
+          // Highlight boundary
+          layer.setStyle({
+            color: isPMC ? '#1e40af' : '#065f46',
+            weight: 3.5,
+            opacity: 1,
+            fillColor: isPMC ? '#3b82f6' : '#10b981',
+            fillOpacity: 0.45
+          });
+          layer.bringToFront();
+
+          // Populate the drawer in background
+          populateWardDrawer(wardData);
+
+          // Wire popup action buttons
+          const popupEl = e.popup.getElement();
+          if (popupEl) {
+            const zoomBtn = popupEl.querySelector('[data-action="zoom"]');
+            if (zoomBtn) {
+              zoomBtn.onclick = (ev) => {
+                ev.stopPropagation();
+                state.map.fitBounds(layer.getBounds(), { padding: [50, 50], maxZoom: 15, animate: true });
+              };
+            }
+            const drawerBtn = popupEl.querySelector('[data-action="drawer"]');
+            if (drawerBtn) {
+              drawerBtn.onclick = (ev) => {
+                ev.stopPropagation();
+                showWardTableDrawer(wardData);
+              };
+            }
+          }
+        });
+
+        // On popup close: reset highlight if not pinned
+        layer.on('popupclose', () => {
+          if (state.selectedWardLayer === layer && !state.isWardPinned) {
+            geojsonLayer.resetStyle(layer);
+            state.selectedWardLayer = null;
+          }
+        });
+
+        // Click to open pop-up table & highlight exact ward polygon
         layer.on('click', (e) => {
           if (e && e.originalEvent) {
             L.DomEvent.stopPropagation(e.originalEvent);
@@ -1131,7 +1311,9 @@ function renderPuneFullWards() {
             L.DomEvent.stop(e);
           }
           wardClickedTimestamp = Date.now();
-          selectAndHighlightWard(layer, feature, isPMC, geojsonLayer);
+          if (!layer.isPopupOpen()) {
+            layer.openPopup(e.latlng);
+          }
         });
       }
     }).addTo(targetLayerGroup);
