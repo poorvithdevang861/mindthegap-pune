@@ -16,17 +16,21 @@ import {
   POLICY_ECONOMIC_DATA
 } from './data/gis_pune.js';
 import { PUNE_FULL_WARDS } from './data/pune_full_wards.js';
+import { GTFS_ROUTES } from './data/gtfs_routes.js';
+import { GTFS_STOPS } from './data/gtfs_stops.js';
 
 // Global App State
 const state = {
   activeView: 'gis-explorer',
   map: null,
   activeTileLayer: 'osm',
+  isWardPinned: false,
   layers: {
     purple: null,
     aqua: null,
     line3: null,
     pmpml: null,
+    gtfsStops: null,
     catchment: null,
     gaps: null,
     hubs: null,
@@ -134,6 +138,9 @@ function initGISMap() {
   state.map.createPane('corridorsPane');
   state.map.getPane('corridorsPane').style.zIndex = 450;
 
+  state.map.createPane('busStopsPane');
+  state.map.getPane('busStopsPane').style.zIndex = 500;
+
   state.map.createPane('metroPane');
   state.map.getPane('metroPane').style.zIndex = 520;
 
@@ -170,10 +177,11 @@ function initGISMap() {
   state.layers.aqua = L.layerGroup().addTo(state.map);
   state.layers.line3 = L.layerGroup().addTo(state.map);
   state.layers.pmpml = L.layerGroup().addTo(state.map);
+  state.layers.gtfsStops = L.layerGroup().addTo(state.map);
   state.layers.catchment = L.layerGroup().addTo(state.map);
-  state.layers.gaps = L.layerGroup().addTo(state.map);
-  state.layers.hubs = L.layerGroup().addTo(state.map);
-  state.layers.feeders = L.layerGroup().addTo(state.map);
+  state.layers.gaps = L.layerGroup();
+  state.layers.hubs = L.layerGroup();
+  state.layers.feeders = L.layerGroup();
   state.layers.pmcWards = L.layerGroup().addTo(state.map);
   state.layers.pcmcWards = L.layerGroup().addTo(state.map);
   state.layers.activeFeederHighlight = L.layerGroup().addTo(state.map);
@@ -184,6 +192,7 @@ function initGISMap() {
   renderCatchmentBuffers();
   renderTransitGapPolygons();
   renderPMPMLCorridors();
+  renderGTFSBusStops();
   renderMetroLines();
   renderProposedFeeders();
   renderMultimodalHubs();
@@ -218,11 +227,11 @@ function initGISMap() {
 
   document.getElementById('btn-reset-map')?.addEventListener('click', () => {
     state.map.setView(PUNE_CENTER, DEFAULT_ZOOM);
-    ['purple', 'aqua', 'line3', 'pmpml', 'catchment', 'gaps', 'hubs', 'feeders', 'pmc-wards', 'pcmc-wards'].forEach(layerKey => {
+    ['purple', 'aqua', 'line3', 'pmpml', 'gtfs-stops', 'catchment', 'pmc-wards', 'pcmc-wards'].forEach(layerKey => {
       const toggle = document.getElementById(`toggle-${layerKey}`);
       if (toggle) {
         toggle.checked = true;
-        const key = layerKey === 'pmc-wards' ? 'pmcWards' : layerKey === 'pcmc-wards' ? 'pcmcWards' : layerKey;
+        const key = layerKey === 'pmc-wards' ? 'pmcWards' : layerKey === 'pcmc-wards' ? 'pcmcWards' : layerKey === 'gtfs-stops' ? 'gtfsStops' : layerKey;
         if (state.layers[key] && !state.map.hasLayer(state.layers[key])) {
           state.map.addLayer(state.layers[key]);
         }
@@ -235,10 +244,8 @@ function initGISMap() {
   setupLayerToggle('toggle-aqua', 'aqua');
   setupLayerToggle('toggle-line3', 'line3');
   setupLayerToggle('toggle-pmpml', 'pmpml');
+  setupLayerToggle('toggle-gtfs-stops', 'gtfsStops');
   setupLayerToggle('toggle-catchment', 'catchment');
-  setupLayerToggle('toggle-gaps', 'gaps');
-  setupLayerToggle('toggle-hubs', 'hubs');
-  setupLayerToggle('toggle-feeders', 'feeders');
   setupLayerToggle('toggle-pmc-wards', 'pmcWards');
   setupLayerToggle('toggle-pcmc-wards', 'pcmcWards');
 }
@@ -415,40 +422,110 @@ function renderMetroLines() {
   });
 }
 
-// 2b. Render PMPML Bus Corridors
+// 2b. Render PMPML Bus Corridors (from GTFSRoutes.geojson)
 function renderPMPMLCorridors() {
-  PMPML_BUS_CORRIDORS.forEach(route => {
-    const poly = L.polyline(route.coordinates, {
-      pane: 'corridorsPane',
-      color: route.color,
-      weight: 3.5,
-      dashArray: '5, 6',
-      opacity: 0.85
-    }).addTo(state.layers.pmpml);
+  if (!GTFS_ROUTES || !GTFS_ROUTES.features) return;
 
-    poly.bindPopup(`
-      <div style="font-family:sans-serif; padding:4px;">
-        <span style="font-size:10px; font-weight:700; color:#be123c; text-transform:uppercase; letter-spacing:0.04em;">PMPML Bus Trunk</span>
-        <h4 style="margin:2px 0 6px; font-size:13px; color:#0f172a; font-weight:700;">${route.name}</h4>
-        <div style="font-size:11px; color:#475569;">Headway: Every ${route.frequencyMins} mins | Buses: ${route.busesInService}</div>
-        <div style="font-size:10px; color:#64748b; margin-top:4px;">${route.overlapStatus}</div>
-      </div>
-    `);
+  const routesLayer = L.geoJSON(GTFS_ROUTES, {
+    pane: 'corridorsPane',
+    style: () => ({
+      color: '#e11d48',
+      weight: 2,
+      opacity: 0.6,
+      lineCap: 'round',
+      lineJoin: 'round'
+    }),
+    onEachFeature: (feature, layer) => {
+      const p = feature.properties || {};
+      const lineVarId = p.LineVarID || p.OBJECTID;
+      const lenM = p.Shape_Length || p.SUM_Shape_Length || 0;
+      const lenKm = (lenM / 1000).toFixed(2);
 
-    poly.on('click', () => {
-      updateInspector({
-        type: 'PMPML BUS CORRIDOR',
-        tagClass: 'tag-red',
-        name: route.name,
-        coords: 'Network Spine Corridor',
-        desc: `Key arterial bus route. Overlap status: ${route.overlapStatus}`,
-        metric1Val: `${route.dailyCommuters.toLocaleString()} pax/day`,
-        metric2Val: `${route.busesInService} Buses (${route.frequencyMins} min frequency)`,
-        metric3Val: route.overlapStatus.includes('Overlap') ? 'High Overlap (Convert to Feeders)' : 'Keep as Radial Trunk',
-        metric4Val: `~${(route.busesInService * 65).toLocaleString()} L Diesel/day`
+      layer.bindTooltip(`
+        <div style="font-family:sans-serif; font-size:11px; padding:2px 4px;">
+          <b style="color:#be123c;">PMPML Route #${lineVarId}</b><br/>
+          <span style="color:#475569;">Length: <b>${lenKm} km</b></span><br/>
+          <span style="color:#64748b; font-size:10px;">Official GTFS Corridor</span>
+        </div>
+      `, { sticky: true, opacity: 0.95 });
+
+      layer.on('mouseover', () => {
+        layer.setStyle({
+          color: '#9f1239',
+          weight: 4,
+          opacity: 1
+        });
+        layer.bringToFront();
       });
-    });
-  });
+
+      layer.on('mouseout', () => {
+        routesLayer.resetStyle(layer);
+      });
+
+      layer.on('click', () => {
+        updateInspector({
+          type: 'PMPML BUS ROUTE',
+          tagClass: 'tag-red',
+          name: `PMPML Corridor #${lineVarId}`,
+          coords: `Network Spine (${lenKm} km)`,
+          desc: `Surveyed PMPML metropolitan bus transit corridor from GTFS dataset. Total alignment length is ~${lenKm} km across Pune & PCMC.`,
+          metric1Val: `${lenKm} km length`,
+          metric2Val: `Line Var #${lineVarId}`,
+          metric3Val: 'Active GTFS Route',
+          metric4Val: 'PMPML Fleet Network'
+        });
+      });
+    }
+  }).addTo(state.layers.pmpml);
+}
+
+// 2b-2. Render PMPML GTFS Bus Stops (from GTFS.geojson)
+function renderGTFSBusStops() {
+  if (!GTFS_STOPS || !GTFS_STOPS.features) return;
+
+  const canvasRenderer = L.canvas({ pane: 'busStopsPane' });
+
+  L.geoJSON(GTFS_STOPS, {
+    pointToLayer: (feature, latlng) => {
+      return L.circleMarker(latlng, {
+        renderer: canvasRenderer,
+        radius: 3,
+        fillColor: '#f43f5e',
+        color: '#ffffff',
+        weight: 0.75,
+        opacity: 0.9,
+        fillOpacity: 0.85
+      });
+    },
+    onEachFeature: (feature, layer) => {
+      const p = feature.properties || {};
+      const stopName = p.GTFSStops_XYTableToPoint_stop_name || 'PMPML Transit Stop';
+      const stopId = p.GTFSStops_XYTableToPoint_stop_id || p.OBJECTID;
+      const lat = p.GTFSStops_XYTableToPoint_stop_lat || layer.getLatLng().lat;
+      const lon = p.GTFSStops_XYTableToPoint_stop_lon || layer.getLatLng().lng;
+
+      layer.bindTooltip(`
+        <div style="font-family:sans-serif; font-size:11px; padding:2px 4px;">
+          <b style="color:#be123c;">${stopName}</b><br/>
+          <span style="color:#64748b; font-size:10px;">Stop ID: #${stopId}</span>
+        </div>
+      `, { sticky: true, opacity: 0.95 });
+
+      layer.on('click', () => {
+        updateInspector({
+          type: 'PMPML BUS STOP',
+          tagClass: 'tag-red',
+          name: stopName,
+          coords: `${Number(lat).toFixed(4)}, ${Number(lon).toFixed(4)}`,
+          desc: `Official PMPML GTFS bus stop #${stopId} serving Pune metropolitan commuters.`,
+          metric1Val: `Stop #${stopId}`,
+          metric2Val: p.GTFS_Routes_csv_LineVarID ? `Line Var ${p.GTFS_Routes_csv_LineVarID}` : 'PMPML Network',
+          metric3Val: 'Active Bus Stop',
+          metric4Val: 'GTFS Transit Node'
+        });
+      });
+    }
+  }).addTo(state.layers.gtfsStops);
 }
 
 // 2c. Render 500m Catchment Buffers
@@ -632,6 +709,34 @@ function findNearestMetroStation(lat, lon) {
   return nearest;
 }
 
+function findNearestBusStop(lat, lon) {
+  if (!GTFS_STOPS || !GTFS_STOPS.features || GTFS_STOPS.features.length === 0) return null;
+  let nearest = null;
+  let minD = Infinity;
+
+  GTFS_STOPS.features.forEach(f => {
+    const coords = f.geometry && f.geometry.coordinates;
+    if (coords && coords.length >= 2) {
+      // coords is [lon, lat]
+      const stopLon = coords[0];
+      const stopLat = coords[1];
+      const d = getHaversineDistKm(lat, lon, stopLat, stopLon);
+      if (d < minD) {
+        minD = d;
+        const p = f.properties || {};
+        nearest = {
+          name: p.GTFSStops_XYTableToPoint_stop_name || 'PMPML Transit Stop',
+          id: p.GTFSStops_XYTableToPoint_stop_id || p.OBJECTID,
+          distKm: d.toFixed(2),
+          distM: Math.round(d * 1000)
+        };
+      }
+    }
+  });
+
+  return nearest;
+}
+
 function findNearestFeeder(lat, lon) {
   let nearest = null;
   let minD = Infinity;
@@ -678,6 +783,7 @@ function clearWardHighlight(closeDrawer = true) {
     state.selectedWardData = null;
   }
   if (closeDrawer) {
+    state.isWardPinned = false;
     hideWardTableDrawer();
   }
 }
@@ -725,6 +831,7 @@ function selectAndHighlightWard(layer, feature, isPMC, geojsonLayer) {
   const bounds = layer.getBounds();
   const center = bounds.getCenter();
   const nearestMetro = findNearestMetroStation(center.lat, center.lng);
+  const nearestBusStop = findNearestBusStop(center.lat, center.lng);
   const nearestFeeder = findNearestFeeder(center.lat, center.lng);
   const matchedGap = findTransitGapMatch(center.lat, center.lng);
 
@@ -745,6 +852,7 @@ function selectAndHighlightWard(layer, feature, isPMC, geojsonLayer) {
     vuln,
     center,
     nearestMetro,
+    nearestBusStop,
     nearestFeeder,
     matchedGap
   };
@@ -874,11 +982,15 @@ function showWardTableDrawer(data) {
       </tr>
       <tr>
         <td class="attr-name">Nearest Rapid Transit Station</td>
-        <td class="attr-val">${data.nearestMetro ? data.nearestMetro.name + ' (' + data.nearestMetro.line + ') &mdash; ~' + data.nearestMetro.distKm + ' km' : 'None within 5 km'}</td>
+        <td class="attr-val highlight">${data.nearestMetro ? data.nearestMetro.name + ' (' + data.nearestMetro.line + ') &mdash; ~' + data.nearestMetro.distKm + ' km' : 'None within 5 km'}</td>
+      </tr>
+      <tr>
+        <td class="attr-name">Nearest PMPML Bus Stop</td>
+        <td class="attr-val highlight">${data.nearestBusStop ? data.nearestBusStop.name + ' (#' + data.nearestBusStop.id + ') &mdash; ~' + (data.nearestBusStop.distM < 1000 ? data.nearestBusStop.distM + ' m' : data.nearestBusStop.distKm + ' km') : 'None within walking distance'}</td>
       </tr>
       <tr>
         <td class="attr-name">Spatial Data Boundary</td>
-        <td class="attr-val">IMP Group 38 ArcGIS Pro Spatial Polygon Model</td>
+        <td class="attr-val">IMP Group 38 ArcGIS Pro Spatial Polygon Model (Metro.geojson)</td>
       </tr>
     `;
   }
@@ -922,6 +1034,7 @@ function initWardModalEvents() {
 
   // Close Button
   document.getElementById('btn-ward-close')?.addEventListener('click', () => {
+    state.isWardPinned = false;
     clearWardHighlight(true);
   });
 
@@ -940,6 +1053,8 @@ function initWardModalEvents() {
     }
   });
 }
+
+let wardClickedTimestamp = 0;
 
 // 2g. Render PMC & PCMC Wards (Imported from ArcGIS Pro IMP Project)
 function renderPuneFullWards() {
@@ -987,7 +1102,7 @@ function renderPuneFullWards() {
           <div style="font-family:sans-serif; font-size:11px; padding:2px 4px;">
             <b style="color:${isPMC ? '#1d4ed8' : '#047857'};">[${isPMC ? 'PMC' : 'PCMC'}] Ward ${wardNo}:</b> ${wardName}<br/>
             <span style="color:#64748b;">Pop (2026): <b>${pop2026 > 0 ? pop2026.toLocaleString() : 'N/A'}</b></span><br/>
-            <span style="color:#0891b2; font-size:10px; font-weight:600;">Click to highlight ward &amp; open table</span>
+            <span style="color:#0891b2; font-size:10px; font-weight:600;">Click to view full ward table</span>
           </div>
         `, { sticky: true, opacity: 0.95, pane: 'stationsPane' });
 
@@ -1010,8 +1125,12 @@ function renderPuneFullWards() {
         // Click to highlight exact ward polygon & open attribute table drawer
         layer.on('click', (e) => {
           if (e && e.originalEvent) {
-            L.DomEvent.stopPropagation(e);
+            L.DomEvent.stopPropagation(e.originalEvent);
           }
+          if (e) {
+            L.DomEvent.stop(e);
+          }
+          wardClickedTimestamp = Date.now();
           selectAndHighlightWard(layer, feature, isPMC, geojsonLayer);
         });
       }
@@ -1020,6 +1139,7 @@ function renderPuneFullWards() {
 
   // Clear ward selection when clicking anywhere else on the map
   state.map.on('click', () => {
+    if (Date.now() - wardClickedTimestamp < 350) return;
     clearWardHighlight(true);
   });
 

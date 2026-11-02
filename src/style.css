@@ -538,6 +538,7 @@ input:checked + .slider { background-color: var(--accent-teal); }
 input:checked + .slider.cyan { background-color: var(--accent-cyan); }
 input:checked + .slider.orange { background-color: var(--accent-amber); }
 input:checked + .slider.red { background-color: var(--accent-red); }
+input:checked + .slider.rose { background-color: #e11d48; }
 input:checked + .slider.green { background-color: var(--accent-emerald); }
 input:checked + .slider.blue { background-color: #2563eb; }
 
@@ -1428,16 +1429,16 @@ input:checked + .slider:before {
   right: 1rem;
   max-width: 820px;
   margin: 0 auto;
-  z-index: 600;
+  z-index: 1000;
   background: var(--bg-surface);
   border: 1px solid var(--border-medium);
   border-radius: var(--radius-lg);
-  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.2), 0 4px 12px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 20px 48px rgba(15, 23, 42, 0.28), 0 4px 16px rgba(15, 23, 42, 0.12);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   display: flex;
   flex-direction: column;
-  max-height: 440px;
+  max-height: 480px;
   overflow: hidden;
   animation: slideUpWardDrawer 0.32s cubic-bezier(0.16, 1, 0.3, 1);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1653,7 +1654,7 @@ input:checked + .slider:before {
 
 /* Scrollable Table */
 .ward-table-scroll-wrapper {
-  max-height: 200px;
+  max-height: 220px;
   overflow-y: auto;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
